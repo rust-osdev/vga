@@ -15,8 +15,11 @@ static PLANES: &'static [Plane] = &[Plane::Plane0, Plane::Plane1, Plane::Plane2,
 ///
 /// Basic usage:
 ///
-/// ```
+/// ```no_run
+/// use vga::Graphics640x480x16;
+///
 /// let graphics_mode = Graphics640x480x16::new();
+///
 /// graphics_mode.set_mode();
 /// graphics_mode.clear_screen();
 /// ```

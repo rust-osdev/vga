@@ -20,8 +20,11 @@ static BLANK_CHARACTER: ScreenCharacter = ScreenCharacter {
 ///
 /// Basic usage:
 ///
-/// ```
+/// ```no_run
+/// use vga::Text40x50;
+///
 /// let text_mode = Text40x50::new();
+///
 /// text_mode.set_mode();
 /// text_mode.clear_screen();
 /// ```
