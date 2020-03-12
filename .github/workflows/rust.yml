@@ -51,7 +51,6 @@ jobs:
       - name: "Run cargo test"
         run: cargo test
 
-      - name: "Install Rustup Targets"
       - name: "Install Rustup Components"
         run: rustup component add rust-src llvm-tools-preview
       - name: "Install cargo-xbuild"
