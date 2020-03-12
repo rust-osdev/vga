@@ -1,0 +1,12 @@
+[package]
+name = "vga"
+version = "0.1.0"
+authors = ["Ryan Kennedy <rkennedy9064@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+conquer-once = "0.2.0"
+spinning_top = "0.1.0"
+x86_64 = "0.9.6"
