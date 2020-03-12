@@ -50,9 +50,9 @@ jobs:
       - name: "Install Rustup Components"
         run: rustup component add rust-src llvm-tools-preview
       - name: "Install cargo-xbuild"
-        run: cargo install cargo-xbuild --debug --root binaries
+        run: cargo install cargo-xbuild --debug
       - name: "Install bootimage"
-        run: cargo install bootimage --debug --root binaries
+        run: cargo install bootimage --debug
 
       - name: Install QEMU (Linux)
         run: |
