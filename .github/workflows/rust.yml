@@ -85,10 +85,6 @@ jobs:
       - name: "Print QEMU Version"
         run: qemu-system-x86_64 --version
 
-      - name: "Run Test Framework"
-        run: cargo xtest --verbose
-        working-directory: "testing"
-
   check_formatting:
     name: "Check Formatting"
     runs-on: ubuntu-latest
