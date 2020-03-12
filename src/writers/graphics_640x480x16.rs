@@ -7,7 +7,7 @@ use spinning_top::SpinlockGuard;
 const WIDTH: usize = 640;
 const HEIGHT: usize = 480;
 
-static PLANES: &'static [Plane] = &[Plane::Plane0, Plane::Plane1, Plane::Plane2, Plane::Plane3];
+static PLANES: &[Plane] = &[Plane::Plane0, Plane::Plane1, Plane::Plane2, Plane::Plane3];
 
 /// A basic interface for interacting with vga graphics mode 640x480x16
 ///
@@ -23,6 +23,7 @@ static PLANES: &'static [Plane] = &[Plane::Plane0, Plane::Plane1, Plane::Plane2,
 /// graphics_mode.set_mode();
 /// graphics_mode.clear_screen();
 /// ```
+#[derive(Default)]
 pub struct Graphics640x480x16;
 
 impl Graphics640x480x16 {
@@ -47,7 +48,7 @@ impl Graphics640x480x16 {
         assert!(x < WIDTH, "x >= {}", WIDTH);
         assert!(y < HEIGHT, "y >= {}", HEIGHT);
         let (mut vga, frame_buffer) = self.get_frame_buffer();
-        let offset = (x / 8 + (WIDTH / 8) * y) as isize;
+        let offset = x / 8 + (WIDTH / 8) * y;
 
         // Store the current value for masking.
         let x = x & 7;
@@ -56,14 +57,14 @@ impl Graphics640x480x16 {
 
         for plane in PLANES {
             vga.set_plane(*plane);
-            let current_value = unsafe { frame_buffer.offset(offset).read_volatile() };
+            let current_value = unsafe { frame_buffer.add(offset).read_volatile() };
             let new_value = if plane_mask & color as u8 != 0 {
                 current_value | mask
             } else {
                 current_value & !mask
             };
             unsafe {
-                frame_buffer.offset(offset).write_volatile(new_value);
+                frame_buffer.add(offset).write_volatile(new_value);
             }
             plane_mask <<= 1;
         }

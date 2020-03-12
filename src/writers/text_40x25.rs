@@ -28,6 +28,7 @@ static BLANK_CHARACTER: ScreenCharacter = ScreenCharacter {
 /// text_mode.set_mode();
 /// text_mode.clear_screen();
 /// ```
+#[derive(Default)]
 pub struct Text40x25;
 
 impl Text40x25 {
@@ -43,9 +44,7 @@ impl Text40x25 {
         let (_vga, frame_buffer) = self.get_frame_buffer();
         for i in 0..SCREEN_SIZE {
             unsafe {
-                frame_buffer
-                    .offset(i as isize)
-                    .write_volatile(BLANK_CHARACTER);
+                frame_buffer.add(i).write_volatile(BLANK_CHARACTER);
             }
         }
     }
@@ -57,10 +56,10 @@ impl Text40x25 {
         assert!(x < WIDTH, "x >= {}", WIDTH);
         assert!(y < HEIGHT, "y >= {}", HEIGHT);
         let (_vga, frame_buffer) = self.get_frame_buffer();
-        let offset = (WIDTH * y + x) as isize;
+        let offset = WIDTH * y + x;
         unsafe {
             frame_buffer
-                .offset(offset)
+                .add(offset)
                 .write_volatile(ScreenCharacter { character, color });
         }
     }
