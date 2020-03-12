@@ -88,10 +88,6 @@ jobs:
       - name: "Build Test Kernel"
         run: cargo xbuild
         working-directory: 'testing'
-        
-      - name: "Test Kernel"
-        run: cargo xtest
-        working-directory: 'testing'
 
   check_formatting:
     name: "Check Formatting"
