@@ -86,7 +86,7 @@ jobs:
         run: qemu-system-x86_64 --version
 
       - name: "Run Test Framework"
-        run: cargo xtest
+        run: cargo xtest --verbose
         working-directory: "testing"
 
   check_formatting:
