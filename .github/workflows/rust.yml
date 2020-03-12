@@ -87,7 +87,7 @@ jobs:
 
       - name: "Run Test Framework"
         run: cargo xtest
-        working-directory: "./testing"
+        working-directory: "testing"
 
   check_formatting:
     name: "Check Formatting"
