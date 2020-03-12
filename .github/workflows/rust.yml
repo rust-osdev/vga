@@ -80,10 +80,6 @@ jobs:
         run: |
           rustup target add i686-unknown-linux-gnu
           rustup target add thumbv7em-none-eabihf
-      - name: "Build on non x86_64 platforms"
-        run: |
-          cargo build --target i686-unknown-linux-gnu
-          cargo build --target thumbv7em-none-eabihf
       - name: "Install Rustup Components"
         run: rustup component add rust-src llvm-tools-preview
       - name: "Install cargo-xbuild"
