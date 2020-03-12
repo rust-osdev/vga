@@ -84,6 +84,10 @@ jobs:
 
       - name: "Print QEMU Version"
         run: qemu-system-x86_64 --version
+      
+      - name: "Build Test Kernel"
+        run: cargo xbuild
+        working-directory: 'testing'
 
   check_formatting:
     name: "Check Formatting"
