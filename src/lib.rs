@@ -4,13 +4,15 @@
 #![no_std]
 #![warn(missing_docs)]
 
+pub mod colors;
+mod configurations;
+mod fonts;
+mod registers;
 pub mod vga;
-pub mod vga_colors;
-mod vga_configurations;
-mod vga_fonts;
-mod vga_registers;
+mod writers;
 
 pub use self::vga::VGA;
+pub use self::writers::{Graphics640x480x16, Text40x25, Text40x50, Text80x25};
 
 #[cfg(test)]
 mod tests {

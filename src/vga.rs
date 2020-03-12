@@ -1,12 +1,12 @@
 //! Provides access to the vga graphics card.
 
 use super::{
-    vga_configurations::{
+    configurations::{
         VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
         MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
     },
-    vga_fonts::{VgaFont, TEXT_8X16_FONT, TEXT_8X8_FONT},
-    vga_registers::{
+    fonts::{VgaFont, TEXT_8X16_FONT, TEXT_8X8_FONT},
+    registers::{
         AttributeControllerRegisters, CrtcControllerIndex, CrtcControllerRegisters, EmulationMode,
         GeneralRegisters, GraphicsControllerIndex, GraphicsControllerRegisters, SequencerIndex,
         SequencerRegisters,

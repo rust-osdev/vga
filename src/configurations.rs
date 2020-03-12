@@ -1,4 +1,4 @@
-use super::vga_registers::{
+use super::registers::{
     AttributeControllerIndex, CrtcControllerIndex, GraphicsControllerIndex, SequencerIndex,
 };
 
