@@ -10,7 +10,7 @@ mod vga_configurations;
 mod vga_fonts;
 mod vga_registers;
 
-pub use vga::VGA;
+pub use self::vga::VGA;
 
 #[cfg(test)]
 mod tests {
