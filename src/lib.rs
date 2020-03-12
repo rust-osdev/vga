@@ -16,11 +16,3 @@ mod writers;
 
 pub use self::vga::VGA;
 pub use self::writers::{Graphics640x480x16, Text40x25, Text40x50, Text80x25};
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
