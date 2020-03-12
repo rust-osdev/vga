@@ -34,26 +34,67 @@ jobs:
       - name: Set Rustup profile to minimal
         run: rustup set profile minimal
 
+      - name: Install musl target on Linux
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          sudo apt-get install musl-tools musl-dev
+        if: runner.os == 'Linux'
+
       - name: "Print Rust Version"
         run: |
           rustc -Vv
           cargo -Vv
+      - name: Cache binaries
+        id: cache-bin
+        uses: actions/cache@v1
+        with:
+          path: binaries
+          key: ${{ runner.OS }}-binaries
+      - name: Add binaries/bin to PATH
+        run: echo ::add-path::$GITHUB_WORKSPACE/binaries/bin
+        shell: bash
+
       - name: "Run cargo build"
         run: cargo build
+
+      - name: "Run cargo build for stable"
+        run: cargo build --no-default-features --features stable
+        if: runner.os != 'Windows'
+
+      - name: "Run cargo build for stable on musl"
+        run: cargo build --target x86_64-unknown-linux-musl --no-default-features --features stable
+        if: runner.os == 'Linux'
 
       - name: "Run cargo test"
         run: cargo test
 
-      - name: "Run cargo doc"
-        run: cargo doc
+      - name: "Run cargo test for stable"
+        run: cargo test --no-default-features --features stable
+        if: runner.os != 'Windows'
 
+      - name: "Run cargo test for stable on musl"
+        run: cargo test --target x86_64-unknown-linux-musl --no-default-features --features stable
+        if: runner.os == 'Linux'
+
+      - name: "Deny Warnings"
+        run: cargo build --features deny-warnings
+
+      - name: "Install Rustup Targets"
+        run: |
+          rustup target add i686-unknown-linux-gnu
+          rustup target add thumbv7em-none-eabihf
+      - name: "Build on non x86_64 platforms"
+        run: |
+          cargo build --target i686-unknown-linux-gnu
+          cargo build --target thumbv7em-none-eabihf
       - name: "Install Rustup Components"
         run: rustup component add rust-src llvm-tools-preview
       - name: "Install cargo-xbuild"
-        run: cargo install cargo-xbuild --debug
+        run: cargo install cargo-xbuild --debug --root binaries
       - name: "Install bootimage"
-        run: cargo install bootimage --debug
+        run: cargo install bootimage --debug --root binaries
 
+        # install QEMU
       - name: Install QEMU (Linux)
         run: |
           sudo apt update
