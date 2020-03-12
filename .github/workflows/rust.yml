@@ -47,9 +47,6 @@ jobs:
       - name: "Run cargo doc"
         run: cargo doc
 
-      - name: "Deny Warnings"
-        run: cargo build --features deny-warnings
-
       - name: "Install Rustup Targets"
         run: rustup target add i686-unknown-linux-gnu
 
