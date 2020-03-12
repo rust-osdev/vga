@@ -10,6 +10,7 @@ conquer-once = { version = "0.2.0", default-features = false }
 spinning_top = { version = "0.1.0", features = ["nightly"] }
 uart_16550 = "0.2.4"
 x86_64 = "0.9.6"
+vga = { path = "../" }
 
 [package.metadata.bootimage]
 test-args = [
