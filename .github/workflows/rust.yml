@@ -31,15 +31,6 @@ jobs:
           echo ::add-path::$HOME/.cargo/bin
         if: runner.os == 'macOS'
 
-      - name: Set Rustup profile to minimal
-        run: rustup set profile minimal
-
-      - name: Install musl target on Linux
-        run: |
-          rustup target add x86_64-unknown-linux-musl
-          sudo apt-get install musl-tools musl-dev
-        if: runner.os == 'Linux'
-
       - name: "Print Rust Version"
         run: |
           rustc -Vv
@@ -61,9 +52,6 @@ jobs:
         run: cargo test
 
       - name: "Install Rustup Targets"
-        run: |
-          rustup target add i686-unknown-linux-gnu
-          rustup target add thumbv7em-none-eabihf
       - name: "Install Rustup Components"
         run: rustup component add rust-src llvm-tools-preview
       - name: "Install cargo-xbuild"
@@ -100,7 +88,7 @@ jobs:
 
       - name: "Run Test Framework"
         run: cargo xtest
-        working-directory: "testing"
+        working-directory: "./testing"
 
   check_formatting:
     name: "Check Formatting"
