@@ -47,12 +47,6 @@ jobs:
       - name: "Run cargo doc"
         run: cargo doc
 
-      - name: "Install Rustup Targets"
-        run: rustup target add i686-unknown-linux-gnu
-
-      - name: "Build on non x86_64 platforms"
-        run: cargo build --target i686-unknown-linux-gnu
-
       - name: "Install Rustup Components"
         run: rustup component add rust-src llvm-tools-preview
       - name: "Install cargo-xbuild"
