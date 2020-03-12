@@ -1,12 +1,19 @@
 [package]
-name = "vga"
+name = "testing"
 version = "0.1.0"
 authors = ["Ryan Kennedy <rkennedy9064@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+bootloader = "0.8.9"
 conquer-once = { version = "0.2.0", default-features = false }
 spinning_top = { version = "0.1.0", features = ["nightly"] }
+uart_16550 = "0.2.4"
 x86_64 = "0.9.6"
+
+[package.metadata.bootimage]
+test-args = [
+    "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-serial", "stdio",
+    "-display", "none"
+]
+test-success-exit-code = 33
