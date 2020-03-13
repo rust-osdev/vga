@@ -89,6 +89,10 @@ jobs:
         run: cargo xbuild
         working-directory: 'testing'
 
+      - name: "Run Test Framework"
+        run: cargo xtest --verbose
+        working-directory: "testing"
+
   check_formatting:
     name: "Check Formatting"
     runs-on: ubuntu-latest
