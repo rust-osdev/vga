@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "master"
+      - "develop"
     tags:
       - "*"
   schedule:
@@ -84,10 +85,10 @@ jobs:
 
       - name: "Print QEMU Version"
         run: qemu-system-x86_64 --version
-      
+
       - name: "Build Test Kernel"
         run: cargo xbuild
-        working-directory: 'testing'
+        working-directory: "testing"
 
       - name: "Run Test Framework"
         run: cargo xtest --verbose
