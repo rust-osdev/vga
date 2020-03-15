@@ -1,6 +1,7 @@
 use super::ScreenCharacter;
 use crate::{
     colors::{Color16Bit, TextModeColor, DEFAULT_PALETTE},
+    fonts::TEXT_8X16_FONT,
     vga::{Vga, VideoMode, VGA},
 };
 use spinning_top::SpinlockGuard;
@@ -72,6 +73,7 @@ impl Text80x25 {
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
         vga.load_palette(&DEFAULT_PALETTE);
+        vga.load_font(&TEXT_8X16_FONT);
     }
 
     /// Returns the start of the `FrameBuffer` as `*mut ScreenCharacter`

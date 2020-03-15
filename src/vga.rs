@@ -6,7 +6,7 @@ use super::{
         VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
         MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
     },
-    fonts::{VgaFont, TEXT_8X16_FONT, TEXT_8X8_FONT},
+    fonts::VgaFont,
     registers::{
         AttributeControllerIndex, AttributeControllerRegisters, ColorPaletteRegisters,
         CrtcControllerIndex, CrtcControllerRegisters, EmulationMode, GeneralRegisters,
@@ -191,7 +191,8 @@ impl Vga {
         self.color_palette_registers.read_palette(palette);
     }
 
-    fn load_font(&mut self, vga_font: &VgaFont) {
+    /// Loads a vga text mode font as specified by `vga_font`.
+    pub fn load_font(&mut self, vga_font: &VgaFont) {
         // Save registers
         let (
             plane_mask,
@@ -330,21 +331,18 @@ impl Vga {
     /// Sets the video card to Mode 40x25.
     fn set_video_mode_40x25(&mut self) {
         self.set_registers(&MODE_40X25_CONFIGURATION);
-        self.load_font(&TEXT_8X16_FONT);
         self.most_recent_video_mode = Some(VideoMode::Mode40x25);
     }
 
     /// Sets the video card to Mode 40x50.
     fn set_video_mode_40x50(&mut self) {
         self.set_registers(&MODE_40X50_CONFIGURATION);
-        self.load_font(&TEXT_8X8_FONT);
         self.most_recent_video_mode = Some(VideoMode::Mode40x50);
     }
 
     /// Sets the video card to Mode 80x25.
     fn set_video_mode_80x25(&mut self) {
         self.set_registers(&MODE_80X25_CONFIGURATION);
-        self.load_font(&TEXT_8X16_FONT);
         self.most_recent_video_mode = Some(VideoMode::Mode80x25);
     }
 
