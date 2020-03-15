@@ -5,10 +5,15 @@ use super::registers::{
 /// Represents a set of vga registers for a given mode.
 #[derive(Debug)]
 pub struct VgaConfiguration {
+    /// Represents the configuration value for the miscellaneous output register.
     pub miscellaneous_output: u8,
+    /// Represents the configuration values for the sequencer registers.
     pub sequencer_registers: &'static [(SequencerIndex, u8)],
+    /// Represents the configuration values for the crtc controller registers.
     pub crtc_controller_registers: &'static [(CrtcControllerIndex, u8)],
+    /// Represents the configuration values for the graphics controller registers.
     pub graphics_controller_registers: &'static [(GraphicsControllerIndex, u8)],
+    /// Represents the configuration values for the attribute controller registers.
     pub attribute_controller_registers: &'static [(AttributeControllerIndex, u8)],
 }
 

@@ -5,7 +5,8 @@ authors = ["Ryan Kennedy <rkennedy9064@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-bootloader = { version = "0.8.9", features = ["map_physical_memory"] }
+# TODO: Move back to crate when vga mapping is merged in.
+bootloader = { git = "https://github.com/RKennedy9064/bootloader", branch = "vga-mappings", features = ["map_physical_memory"] }
 conquer-once = { version = "0.2.0", default-features = false }
 spinning_top = { version = "0.1.0", features = ["nightly"] }
 pic8259_simple = "0.1.1"

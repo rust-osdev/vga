@@ -6,7 +6,10 @@
 
 use core::panic::PanicInfo;
 use testing::{gdt, interrupts, serial_print, serial_println};
-use vga::{VideoMode, VGA};
+use vga::{
+    Vga, VgaConfiguration, VideoMode, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
+    MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION, VGA,
+};
 
 #[no_mangle] // don't mangle the name of this function
 pub extern "C" fn _start() -> ! {
@@ -29,11 +32,69 @@ fn panic(info: &PanicInfo) -> ! {
 }
 
 #[test_case]
+fn set_mode_40x25() {
+    serial_print!("mode 40x25... ");
+
+    let mut vga = VGA.lock();
+    vga.set_video_mode(VideoMode::Mode40x25);
+    check_registers(&mut vga, &MODE_40X25_CONFIGURATION);
+
+    serial_println!("[ok]");
+}
+
+#[test_case]
+fn set_mode_40x50() {
+    serial_print!("mode 40x50... ");
+
+    let mut vga = VGA.lock();
+    vga.set_video_mode(VideoMode::Mode40x50);
+    check_registers(&mut vga, &MODE_40X50_CONFIGURATION);
+
+    serial_println!("[ok]");
+}
+
+#[test_case]
 fn set_mode_80x25() {
     serial_print!("mode 80x25... ");
 
     let mut vga = VGA.lock();
     vga.set_video_mode(VideoMode::Mode80x25);
+    check_registers(&mut vga, &MODE_80X25_CONFIGURATION);
 
     serial_println!("[ok]");
+}
+
+#[test_case]
+fn set_mode_640x480x16() {
+    serial_print!("mode 640x480x16... ");
+
+    let mut vga = VGA.lock();
+    vga.set_video_mode(VideoMode::Mode640x480x16);
+    check_registers(&mut vga, &MODE_640X480X16_CONFIGURATION);
+
+    serial_println!("[ok]");
+}
+
+fn check_registers(vga: &mut Vga, configuration: &VgaConfiguration) {
+    let emulation_mode = vga.get_emulation_mode();
+    assert_eq!(vga.read_msr(), configuration.miscellaneous_output);
+
+    for (index, value) in configuration.sequencer_registers {
+        assert_eq!(vga.read_sequencer(*index), *value);
+    }
+
+    for (index, value) in configuration.crtc_controller_registers {
+        assert_eq!(vga.read_crtc_controller(emulation_mode, *index), *value);
+    }
+
+    for (index, value) in configuration.graphics_controller_registers {
+        assert_eq!(vga.read_graphics_controller(*index), *value);
+    }
+
+    for (index, value) in configuration.attribute_controller_registers {
+        assert_eq!(
+            vga.read_attribute_controller(emulation_mode, *index),
+            *value
+        );
+    }
 }

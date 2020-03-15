@@ -271,6 +271,12 @@ impl AttributeControllerRegisters {
         }
     }
 
+    pub fn read(&mut self, emulation_mode: EmulationMode, index: AttributeControllerIndex) -> u8 {
+        self.toggle_index(emulation_mode);
+        self.set_index(index);
+        unsafe { self.arx_data.read() }
+    }
+
     pub fn write(
         &mut self,
         emulation_mode: EmulationMode,

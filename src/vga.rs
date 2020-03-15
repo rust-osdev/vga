@@ -7,9 +7,9 @@ use super::{
     },
     fonts::{VgaFont, TEXT_8X16_FONT, TEXT_8X8_FONT},
     registers::{
-        AttributeControllerRegisters, CrtcControllerIndex, CrtcControllerRegisters, EmulationMode,
-        GeneralRegisters, GraphicsControllerIndex, GraphicsControllerRegisters, SequencerIndex,
-        SequencerRegisters,
+        AttributeControllerIndex, AttributeControllerRegisters, CrtcControllerIndex,
+        CrtcControllerRegisters, EmulationMode, GeneralRegisters, GraphicsControllerIndex,
+        GraphicsControllerRegisters, SequencerIndex, SequencerRegisters,
     },
 };
 use conquer_once::spin::Lazy;
@@ -131,17 +131,44 @@ impl Vga {
         self.most_recent_video_mode
     }
 
-    /// `I/O Address Select` Bit 0 `(value & 0x1)` of MSR selects 3Bxh or 3Dxh as the I/O address for the CRT Controller
-    /// registers, the Feature Control Register (FCR), and Input Status Register 1 (ST01). Presently
-    /// ignored (whole range is claimed), but will "ignore" 3Bx for color configuration or 3Dx for
-    /// monochrome.
-    /// Note that it is typical in AGP chipsets to shadow this bit and properly steer I/O cycles to the
-    /// proper bus for operation where a MDA exists on another bus such as ISA.
-    ///
-    /// 0 = Select 3Bxh I/O address `(EmulationMode::Mda)`
-    ///
-    /// 1 = Select 3Dxh I/O address `(EmulationMode:Cga)`
-    fn get_emulation_mode(&mut self) -> EmulationMode {
+    /// Returns the current value of the miscellaneous output register.
+    pub fn read_msr(&mut self) -> u8 {
+        self.general_registers.read_msr()
+    }
+
+    /// Returns the current value of the sequencer register, as determined by `index`.
+    pub fn read_sequencer(&mut self, index: SequencerIndex) -> u8 {
+        self.sequencer_registers.read(index)
+    }
+
+    /// Returns the current value of the graphics controller register, as determined by `index`.
+    pub fn read_graphics_controller(&mut self, index: GraphicsControllerIndex) -> u8 {
+        self.graphics_controller_registers.read(index)
+    }
+
+    /// Returns the current value of the attribute controller register, as determined by `emulation_mode`
+    /// and `index`.
+    pub fn read_attribute_controller(
+        &mut self,
+        emulation_mode: EmulationMode,
+        index: AttributeControllerIndex,
+    ) -> u8 {
+        self.attribute_controller_registers
+            .read(emulation_mode, index)
+    }
+
+    /// Returns the current value of the crtc controller, as determined by `emulation_mode`
+    /// and `index`.
+    pub fn read_crtc_controller(
+        &mut self,
+        emulation_mode: EmulationMode,
+        index: CrtcControllerIndex,
+    ) -> u8 {
+        self.crtc_controller_registers.read(emulation_mode, index)
+    }
+
+    /// Returns the current `EmulationMode` as determined by the miscellaneous output register.
+    pub fn get_emulation_mode(&mut self) -> EmulationMode {
         EmulationMode::from(self.general_registers.read_msr() & 0x1)
     }
 
