@@ -34,6 +34,16 @@ pub static PICS: Spinlock<ChainedPics> =
 static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     let mut idt = InterruptDescriptorTable::new();
     idt.page_fault.set_handler_fn(page_fault_handler);
+    idt.divide_error.set_handler_fn(divide_error_handler);
+    idt.non_maskable_interrupt.set_handler_fn(non_maskable_interrupt);
+    idt.overflow.set_handler_fn(overflow);
+    idt.bound_range_exceeded.set_handler_fn(bound_range_exceeded);
+    idt.invalid_opcode.set_handler_fn(invalid_opcode);
+    idt.device_not_available.set_handler_fn(device_not_available);
+    idt.invalid_tss.set_handler_fn(invalid_tss);
+    idt.segment_not_present.set_handler_fn(segment_not_present);
+    idt.stack_segment_fault.set_handler_fn(stack_segment_fault);
+    idt.general_protection_fault.set_handler_fn(general_protection_fault);
     unsafe {
         idt.double_fault
             .set_handler_fn(double_fault_handler)
@@ -65,4 +75,47 @@ extern "x86-interrupt" fn page_fault_handler(
     serial_println!("Error Code: {:?}", error_code);
     serial_println!("{:#?}", stack_frame);
     hlt_loop();
+}
+
+extern "x86-interrupt" fn divide_error_handler(stack_frame: &mut InterruptStackFrame) {
+    panic!("EXCEPTION: DIVIDE ERROR\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn non_maskable_interrupt(stack_frame: &mut InterruptStackFrame) {
+    panic!(
+        "EXCEPTION: NON MASKABLE INTERRUPT ERROR\n{:#?}",
+        stack_frame
+    );
+}
+
+extern "x86-interrupt" fn overflow(stack_frame: &mut InterruptStackFrame) {
+    panic!("EXCEPTION: OVERFLOW\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn bound_range_exceeded(stack_frame: &mut InterruptStackFrame) {
+    panic!("EXCEPTION: BOUND RANGE EXCEEDED\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn invalid_opcode(stack_frame: &mut InterruptStackFrame) {
+    panic!("EXCEPTION: INVALID OPCODE\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn device_not_available(stack_frame: &mut InterruptStackFrame) {
+    panic!("EXCEPTION: DEVICE NOT AVAILABLE\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn invalid_tss(stack_frame: &mut InterruptStackFrame, error_code: u64) {
+    panic!("EXCEPTION: INVALID TSS\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn segment_not_present(stack_frame: &mut InterruptStackFrame, error_code: u64) {
+    panic!("EXCEPTION: SEGMENT NOT PRESENT\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn stack_segment_fault(stack_frame: &mut InterruptStackFrame, error_code: u64) {
+    panic!("EXCEPTION: STACK SEGMENT FAULT\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn general_protection_fault(stack_frame: &mut InterruptStackFrame, error_code: u64) {
+    panic!("EXCEPTION: GENERAL PROTECTION FAULT\n{:#?}", stack_frame);
 }
