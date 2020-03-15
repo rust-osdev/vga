@@ -1,7 +1,12 @@
+//! Common font structures used in vga programming.
+
 /// Represents a font to be used for text mode.
 pub struct VgaFont {
+    /// Represents the number of characters contained in the font.
     pub characters: u16,
+    /// Represents the height of the characters in bytes.
     pub character_height: u16,
+    /// Represents the font data to be loaded in.
     pub font_data: &'static [u8],
 }
 

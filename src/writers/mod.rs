@@ -1,3 +1,4 @@
+//! Writers for common vga modes.
 mod graphics_640x480x16;
 mod text_40x25;
 mod text_40x50;

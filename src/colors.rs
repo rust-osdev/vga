@@ -1,4 +1,4 @@
-//! Common color structures used in vga.
+//! Common color structures used in vga programming.
 
 /// Represents the size of the vga palette in bytes.
 pub const PALETTE_SIZE: usize = 768;

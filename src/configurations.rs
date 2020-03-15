@@ -1,3 +1,5 @@
+//! Common video configurations used in vga programming.
+
 use super::registers::{
     AttributeControllerIndex, CrtcControllerIndex, GraphicsControllerIndex, SequencerIndex,
 };
@@ -49,7 +51,7 @@ pub const MODE_40X25_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::VerticalSyncEnd, 0x8E),
         (CrtcControllerIndex::VerticalDisplayEnableEnd, 0x8F),
         (CrtcControllerIndex::Offset, 0x14),
-        (CrtcControllerIndex::UnderlineLocationRegister, 0x1F),
+        (CrtcControllerIndex::UnderlineLocation, 0x1F),
         (CrtcControllerIndex::VerticalBlankingStart, 0x96),
         (CrtcControllerIndex::VerticalBlankingEnd, 0xB9),
         (CrtcControllerIndex::ModeControl, 0xA3),
@@ -123,7 +125,7 @@ pub const MODE_40X50_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::VerticalSyncEnd, 0x8E),
         (CrtcControllerIndex::VerticalDisplayEnableEnd, 0x8F),
         (CrtcControllerIndex::Offset, 0x14),
-        (CrtcControllerIndex::UnderlineLocationRegister, 0x1F),
+        (CrtcControllerIndex::UnderlineLocation, 0x1F),
         (CrtcControllerIndex::VerticalBlankingStart, 0x96),
         (CrtcControllerIndex::VerticalBlankingEnd, 0xB9),
         (CrtcControllerIndex::ModeControl, 0xA3),
@@ -197,7 +199,7 @@ pub const MODE_80X25_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::VerticalSyncEnd, 0x0E),
         (CrtcControllerIndex::VerticalDisplayEnableEnd, 0x8F),
         (CrtcControllerIndex::Offset, 0x28),
-        (CrtcControllerIndex::UnderlineLocationRegister, 0x1F),
+        (CrtcControllerIndex::UnderlineLocation, 0x1F),
         (CrtcControllerIndex::VerticalBlankingStart, 0x96),
         (CrtcControllerIndex::VerticalBlankingEnd, 0xB9),
         (CrtcControllerIndex::ModeControl, 0xA3),
@@ -272,7 +274,7 @@ pub const MODE_640X480X16_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::VerticalSyncEnd, 0x0C),
         (CrtcControllerIndex::VerticalDisplayEnableEnd, 0xDF),
         (CrtcControllerIndex::Offset, 0x28),
-        (CrtcControllerIndex::UnderlineLocationRegister, 0x00),
+        (CrtcControllerIndex::UnderlineLocation, 0x00),
         (CrtcControllerIndex::VerticalBlankingStart, 0xE7),
         (CrtcControllerIndex::VerticalBlankingEnd, 0x04),
         (CrtcControllerIndex::ModeControl, 0xE3),

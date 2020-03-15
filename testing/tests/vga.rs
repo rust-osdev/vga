@@ -6,11 +6,12 @@
 
 use core::panic::PanicInfo;
 use testing::{gdt, interrupts, serial_print, serial_println};
-use vga::{
-    Vga, VgaConfiguration, VideoMode, DEFAULT_PALETTE, MODE_40X25_CONFIGURATION,
-    MODE_40X50_CONFIGURATION, MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
-    PALETTE_SIZE, VGA,
+use vga::colors::{DEFAULT_PALETTE, PALETTE_SIZE};
+use vga::configurations::{
+    VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
+    MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
 };
+use vga::vga::{Vga, VideoMode, VGA};
 
 #[no_mangle] // don't mangle the name of this function
 pub extern "C" fn _start() -> ! {
