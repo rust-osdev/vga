@@ -1,5 +1,6 @@
 //! Common color structures used in vga.
 
+/// Represents the size of the vga palette in bytes.
 pub const PALETTE_SIZE: usize = 768;
 
 /// Represents a 16 bit color used for vga display.

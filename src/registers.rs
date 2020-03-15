@@ -426,9 +426,9 @@ impl ColorPaletteRegisters {
         unsafe {
             self.index_read_port.write(0);
         }
-        for i in 0..PALETTE_SIZE {
+        for byte in palette.iter_mut().take(PALETTE_SIZE) {
             unsafe {
-                palette[i] = self.data_port.read();
+                *byte = self.data_port.read();
             }
         }
     }
