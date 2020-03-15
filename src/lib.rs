@@ -14,6 +14,7 @@ mod registers;
 mod vga;
 mod writers;
 
+pub use self::colors::{Color16Bit, TextModeColor, DEFAULT_PALETTE, PALETTE_SIZE};
 pub use self::configurations::{
     VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
     MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,

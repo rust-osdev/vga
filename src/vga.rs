@@ -1,15 +1,16 @@
 //! Provides access to the vga graphics card.
 
 use super::{
+    colors::PALETTE_SIZE,
     configurations::{
         VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
         MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
     },
     fonts::{VgaFont, TEXT_8X16_FONT, TEXT_8X8_FONT},
     registers::{
-        AttributeControllerIndex, AttributeControllerRegisters, CrtcControllerIndex,
-        CrtcControllerRegisters, EmulationMode, GeneralRegisters, GraphicsControllerIndex,
-        GraphicsControllerRegisters, SequencerIndex, SequencerRegisters,
+        AttributeControllerIndex, AttributeControllerRegisters, ColorPaletteRegisters,
+        CrtcControllerIndex, CrtcControllerRegisters, EmulationMode, GeneralRegisters,
+        GraphicsControllerIndex, GraphicsControllerRegisters, SequencerIndex, SequencerRegisters,
     },
 };
 use conquer_once::spin::Lazy;
@@ -90,6 +91,7 @@ pub struct Vga {
     graphics_controller_registers: GraphicsControllerRegisters,
     attribute_controller_registers: AttributeControllerRegisters,
     crtc_controller_registers: CrtcControllerRegisters,
+    color_palette_registers: ColorPaletteRegisters,
     most_recent_video_mode: Option<VideoMode>,
 }
 
@@ -101,6 +103,7 @@ impl Vga {
             graphics_controller_registers: GraphicsControllerRegisters::new(),
             attribute_controller_registers: AttributeControllerRegisters::new(),
             crtc_controller_registers: CrtcControllerRegisters::new(),
+            color_palette_registers: ColorPaletteRegisters::new(),
             most_recent_video_mode: None,
         }
     }
@@ -170,6 +173,22 @@ impl Vga {
     /// Returns the current `EmulationMode` as determined by the miscellaneous output register.
     pub fn get_emulation_mode(&mut self) -> EmulationMode {
         EmulationMode::from(self.general_registers.read_msr() & 0x1)
+    }
+
+    /// Loads a new palette into the vga, as specified by `palette`.
+    ///
+    /// Each palette must be `PALETTE_SIZE` bytes long, with every 3
+    /// bytes representing one color `(R, G, B)`.
+    pub fn load_palette(&mut self, palette: &[u8; PALETTE_SIZE]) {
+        self.color_palette_registers.load_palette(palette);
+    }
+
+    /// Reads the current vga palette into `palette`.
+    ///
+    /// Each palette must be `PALETTE_SIZE` bytes long, with every 3
+    /// bytes representing one color `(R, G, B)`.
+    pub fn read_palette(&mut self, palette: &mut [u8; PALETTE_SIZE]) {
+        self.color_palette_registers.read_palette(palette);
     }
 
     fn load_font(&mut self, vga_font: &VgaFont) {

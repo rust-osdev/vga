@@ -1,5 +1,5 @@
 use crate::{
-    colors::Color16Bit,
+    colors::{Color16Bit, DEFAULT_PALETTE},
     vga::{Plane, Vga, VideoMode, VGA},
 };
 use spinning_top::SpinlockGuard;
@@ -34,6 +34,7 @@ impl Graphics640x480x16 {
 
     /// Clears the screen by setting all pixels to `Color16Bit::Black`.
     pub fn clear_screen(&self) {
+        // TODO: Clear the screen by using 4-plane mode instead of slow `set_pixel`.
         for x in 0..WIDTH {
             for y in 0..HEIGHT {
                 self.set_pixel(x, y, Color16Bit::Yellow);
@@ -72,7 +73,12 @@ impl Graphics640x480x16 {
 
     /// Sets the graphics device to `VideoMode::Mode640x480x16`.
     pub fn set_mode(&self) {
-        VGA.lock().set_video_mode(VideoMode::Mode640x480x16);
+        let mut vga = VGA.lock();
+        vga.set_video_mode(VideoMode::Mode640x480x16);
+
+        // Some bios mess up the palette when switching modes,
+        // so explicitly set it.
+        vga.load_palette(&DEFAULT_PALETTE);
     }
 
     /// Returns the start of the `FrameBuffer` as `*mut u8` as

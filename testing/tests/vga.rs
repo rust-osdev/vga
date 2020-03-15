@@ -7,8 +7,9 @@
 use core::panic::PanicInfo;
 use testing::{gdt, interrupts, serial_print, serial_println};
 use vga::{
-    Vga, VgaConfiguration, VideoMode, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
-    MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION, VGA,
+    Vga, VgaConfiguration, VideoMode, DEFAULT_PALETTE, MODE_40X25_CONFIGURATION,
+    MODE_40X50_CONFIGURATION, MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
+    PALETTE_SIZE, VGA,
 };
 
 #[no_mangle] // don't mangle the name of this function
@@ -71,6 +72,22 @@ fn set_mode_640x480x16() {
     let mut vga = VGA.lock();
     vga.set_video_mode(VideoMode::Mode640x480x16);
     check_registers(&mut vga, &MODE_640X480X16_CONFIGURATION);
+
+    serial_println!("[ok]");
+}
+
+#[test_case]
+fn load_palette() {
+    serial_print!("load palette... ");
+
+    let mut palette = [0u8; PALETTE_SIZE];
+    let mut vga = VGA.lock();
+    vga.load_palette(&DEFAULT_PALETTE);
+    vga.read_palette(&mut palette);
+
+    for i in 0..PALETTE_SIZE {
+        assert_eq!(palette[i], DEFAULT_PALETTE[i]);
+    }
 
     serial_println!("[ok]");
 }
