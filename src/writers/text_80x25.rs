@@ -2,6 +2,7 @@ use super::ScreenCharacter;
 use crate::{
     colors::{Color16Bit, TextModeColor, DEFAULT_PALETTE},
     fonts::TEXT_8X16_FONT,
+    registers::CrtcControllerIndex,
     vga::{Vga, VideoMode, VGA},
 };
 use spinning_top::SpinlockGuard;
@@ -74,6 +75,30 @@ impl Text80x25 {
         // so explicitly set it.
         vga.load_palette(&DEFAULT_PALETTE);
         vga.load_font(&TEXT_8X16_FONT);
+    }
+
+    /// Sets the current text cursor to the position specified by
+    /// `x` and `y`.
+    ///
+    /// Panics if `x >= 80` or `y >= 25`.
+    pub fn set_cursor_position(&self, x: usize, y: usize) {
+        assert!(x < WIDTH, "x >= {}", WIDTH);
+        assert!(y < HEIGHT, "y >= {}", HEIGHT);
+        let offset = WIDTH * y + x;
+        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let emulation_mode = vga.get_emulation_mode();
+        let cursor_start = offset & 0xFF;
+        let cursor_end = (offset >> 8) & 0xFF;
+        vga.write_crtc_controller(
+            emulation_mode,
+            CrtcControllerIndex::TextCursorLocationLow,
+            cursor_start as u8,
+        );
+        vga.write_crtc_controller(
+            emulation_mode,
+            CrtcControllerIndex::TextCursorLocationHigh,
+            cursor_end as u8,
+        );
     }
 
     /// Returns the start of the `FrameBuffer` as `*mut ScreenCharacter`

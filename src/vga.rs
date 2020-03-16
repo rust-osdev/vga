@@ -170,6 +170,17 @@ impl Vga {
         self.crtc_controller_registers.read(emulation_mode, index)
     }
 
+    /// Writes `value` to the crtc controller, as determined by `index`.
+    pub fn write_crtc_controller(
+        &mut self,
+        emulation_mode: EmulationMode,
+        index: CrtcControllerIndex,
+        value: u8,
+    ) {
+        self.crtc_controller_registers
+            .write(emulation_mode, index, value);
+    }
+
     /// Returns the current `EmulationMode` as determined by the miscellaneous output register.
     pub fn get_emulation_mode(&mut self) -> EmulationMode {
         EmulationMode::from(self.general_registers.read_msr() & 0x1)
