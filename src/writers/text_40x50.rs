@@ -1,20 +1,12 @@
-use super::ScreenCharacter;
+use super::TextWriter;
 use crate::{
-    colors::{Color16Bit, TextModeColor, DEFAULT_PALETTE},
+    colors::DEFAULT_PALETTE,
     fonts::TEXT_8X8_FONT,
-    registers::CrtcControllerIndex,
-    vga::{Vga, VideoMode, VGA},
+    vga::{VideoMode, VGA},
 };
-use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 40;
 const HEIGHT: usize = 50;
-const SCREEN_SIZE: usize = WIDTH * HEIGHT;
-
-static BLANK_CHARACTER: ScreenCharacter = ScreenCharacter {
-    character: b' ',
-    color: TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black),
-};
 
 /// A basic interface for interacting with vga text mode 40x50
 ///
@@ -23,7 +15,7 @@ static BLANK_CHARACTER: ScreenCharacter = ScreenCharacter {
 /// Basic usage:
 ///
 /// ```no_run
-/// use vga::writers::Text40x50;
+/// use vga::writers::{TextWriter, Text40x50};
 ///
 /// let text_mode = Text40x50::new();
 ///
@@ -33,41 +25,17 @@ static BLANK_CHARACTER: ScreenCharacter = ScreenCharacter {
 #[derive(Default)]
 pub struct Text40x50;
 
-impl Text40x50 {
-    /// Creates a new `Text40x50`.
-    pub fn new() -> Text40x50 {
-        Text40x50 {}
+impl TextWriter for Text40x50 {
+    fn get_width(&self) -> usize {
+        WIDTH
     }
 
-    /// Clears the screen by setting all cells to `b' '` with
-    /// a background color of `Color16Bit::Black` and a foreground
-    /// color of `Color16Bit::Yellow`.
-    pub fn clear_screen(&self) {
-        let (_vga, frame_buffer) = self.get_frame_buffer();
-        for i in 0..SCREEN_SIZE {
-            unsafe {
-                frame_buffer.add(i).write_volatile(BLANK_CHARACTER);
-            }
-        }
-    }
-
-    /// Prints the given `character` and `color` at `(x, y)`.
-    ///
-    /// Panics if `x >= 40` or `y >= 50`.
-    pub fn write_character(&self, x: usize, y: usize, character: u8, color: TextModeColor) {
-        assert!(x < WIDTH, "x >= {}", WIDTH);
-        assert!(y < HEIGHT, "y >= {}", HEIGHT);
-        let (_vga, frame_buffer) = self.get_frame_buffer();
-        let offset = WIDTH * y + x;
-        unsafe {
-            frame_buffer
-                .add(offset)
-                .write_volatile(ScreenCharacter { character, color });
-        }
+    fn get_height(&self) -> usize {
+        HEIGHT
     }
 
     /// Sets the graphics device to `VideoMode::Mode40x50`.
-    pub fn set_mode(&self) {
+    fn set_mode(&self) {
         let mut vga = VGA.lock();
         vga.set_video_mode(VideoMode::Mode40x50);
 
@@ -76,37 +44,11 @@ impl Text40x50 {
         vga.load_palette(&DEFAULT_PALETTE);
         vga.load_font(&TEXT_8X8_FONT);
     }
+}
 
-    /// Sets the current text cursor to the position specified by
-    /// `x` and `y`.
-    ///
-    /// Panics if `x >= 40` or `y >= 50`.
-    pub fn set_cursor_position(&self, x: usize, y: usize) {
-        assert!(x < WIDTH, "x >= {}", WIDTH);
-        assert!(y < HEIGHT, "y >= {}", HEIGHT);
-        let offset = WIDTH * y + x;
-        let (mut vga, _frame_buffer) = self.get_frame_buffer();
-        let emulation_mode = vga.get_emulation_mode();
-        let cursor_start = offset & 0xFF;
-        let cursor_end = (offset >> 8) & 0xFF;
-        vga.write_crtc_controller(
-            emulation_mode,
-            CrtcControllerIndex::TextCursorLocationLow,
-            cursor_start as u8,
-        );
-        vga.write_crtc_controller(
-            emulation_mode,
-            CrtcControllerIndex::TextCursorLocationHigh,
-            cursor_end as u8,
-        );
-    }
-
-    /// Returns the start of the `FrameBuffer` as `*mut ScreenCharacter`
-    /// as well as a lock to the vga driver. This ensures the vga
-    /// driver stays locked while the frame buffer is in use.
-    fn get_frame_buffer(&self) -> (SpinlockGuard<Vga>, *mut ScreenCharacter) {
-        let mut vga = VGA.lock();
-        let frame_buffer = vga.get_frame_buffer();
-        (vga, u32::from(frame_buffer) as *mut ScreenCharacter)
+impl Text40x50 {
+    /// Creates a new `Text40x50`.
+    pub fn new() -> Text40x50 {
+        Text40x50 {}
     }
 }
