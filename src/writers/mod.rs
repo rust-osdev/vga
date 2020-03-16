@@ -72,16 +72,61 @@ pub trait TextWriter {
         }
     }
 
+    /// Disables the cursor in vga text modes.
+    fn disable_cursor(&self) {
+        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let emulation_mode = vga.get_emulation_mode();
+        let cursor_start =
+            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorStart);
+        vga.write_crtc_controller(
+            emulation_mode,
+            CrtcControllerIndex::TextCursorStart,
+            cursor_start | 0x20,
+        );
+    }
+
+    /// Enables the cursor in vga text modes.
+    fn enable_cursor(&self) {
+        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let emulation_mode = vga.get_emulation_mode();
+        let cursor_start =
+            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorStart);
+        vga.write_crtc_controller(
+            emulation_mode,
+            CrtcControllerIndex::TextCursorStart,
+            cursor_start & 0xDF,
+        );
+    }
+
+    /// Sets the size of the cursor, as specified by `scan_line_start` and `scan_line_end`.
+    ///
+    /// This field controls the appearance of the text mode cursor by specifying the scan
+    /// line location within a character cell. The top most scan line is 0, with the bottom
+    /// determined by `CrtcControllerIndex::MaxiumumScanLine (usually 15)`.
+    /// If `scan_line_start > scan_line_end`, the cursor isn't drawn.
+    fn set_cursor(&self, scan_line_start: u8, scan_line_end: u8) {
+        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let emulation_mode = vga.get_emulation_mode();
+        let cursor_start =
+            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorStart) & 0xC0;
+        let cursor_end =
+            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorEnd) & 0xE0;
+        vga.write_crtc_controller(
+            emulation_mode,
+            CrtcControllerIndex::TextCursorStart,
+            cursor_start | scan_line_start,
+        );
+        vga.write_crtc_controller(
+            emulation_mode,
+            CrtcControllerIndex::TextCursorEnd,
+            cursor_end | scan_line_end,
+        );
+    }
+
     /// Sets the current text cursor to the position specified by
     /// `x` and `y`.
-    ///
-    /// Panics if `x >= se.lf.get_width()` or `y >= self.get_height()`.
     fn set_cursor_position(&self, x: usize, y: usize) {
-        let width = self.get_width();
-        let height = self.get_height();
-        assert!(x < width, "x >= {}", width);
-        assert!(y < height, "y >= {}", height);
-        let offset = width * y + x;
+        let offset = self.get_width() * y + x;
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         let emulation_mode = vga.get_emulation_mode();
         let cursor_start = offset & 0xFF;
@@ -99,15 +144,9 @@ pub trait TextWriter {
     }
 
     /// Prints the given `character` and `color` at `(x, y)`.
-    ///
-    /// Panics if `x >= self.get_width()` or `y >= self.get_height()`.
     fn write_character(&self, x: usize, y: usize, screen_character: ScreenCharacter) {
-        let width = self.get_width();
-        let height = self.get_height();
-        assert!(x < width, "x >= {}", width);
-        assert!(y < height, "y >= {}", height);
         let (_vga, frame_buffer) = self.get_frame_buffer();
-        let offset = width * y + x;
+        let offset = self.get_width() * y + x;
         unsafe {
             frame_buffer.add(offset).write_volatile(screen_character);
         }
