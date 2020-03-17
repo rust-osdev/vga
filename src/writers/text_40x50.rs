@@ -15,12 +15,15 @@ const HEIGHT: usize = 50;
 /// Basic usage:
 ///
 /// ```no_run
-/// use vga::writers::{TextWriter, Text40x50};
+/// use vga::colors::Color16Bit;
+/// use vga::writers::{ScreenCharacter, TextWriter, Text40x50};
 ///
 /// let text_mode = Text40x50::new();
+/// let screen_character = ScreenCharacter::new(b'T', Color16Bit::Yellow, Color16Bit::Black);
 ///
 /// text_mode.set_mode();
 /// text_mode.clear_screen();
+/// text_mode.write_character(0, 0, screen_character);
 /// ```
 #[derive(Default)]
 pub struct Text40x50;
