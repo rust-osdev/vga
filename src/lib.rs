@@ -8,11 +8,8 @@
 #![warn(missing_docs)]
 
 pub mod colors;
-mod configurations;
-mod fonts;
-mod registers;
+pub mod configurations;
+pub mod fonts;
+pub mod registers;
 pub mod vga;
-mod writers;
-
-pub use self::vga::VGA;
-pub use self::writers::{Graphics640x480x16, Text40x25, Text40x50, Text80x25};
+pub mod writers;

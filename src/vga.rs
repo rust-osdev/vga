@@ -1,15 +1,16 @@
 //! Provides access to the vga graphics card.
 
 use super::{
+    colors::PALETTE_SIZE,
     configurations::{
         VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
         MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
     },
-    fonts::{VgaFont, TEXT_8X16_FONT, TEXT_8X8_FONT},
+    fonts::VgaFont,
     registers::{
-        AttributeControllerRegisters, CrtcControllerIndex, CrtcControllerRegisters, EmulationMode,
-        GeneralRegisters, GraphicsControllerIndex, GraphicsControllerRegisters, SequencerIndex,
-        SequencerRegisters,
+        AttributeControllerIndex, AttributeControllerRegisters, ColorPaletteRegisters,
+        CrtcControllerIndex, CrtcControllerRegisters, EmulationMode, GeneralRegisters,
+        GraphicsControllerIndex, GraphicsControllerRegisters, SequencerIndex, SequencerRegisters,
     },
 };
 use conquer_once::spin::Lazy;
@@ -90,6 +91,7 @@ pub struct Vga {
     graphics_controller_registers: GraphicsControllerRegisters,
     attribute_controller_registers: AttributeControllerRegisters,
     crtc_controller_registers: CrtcControllerRegisters,
+    color_palette_registers: ColorPaletteRegisters,
     most_recent_video_mode: Option<VideoMode>,
 }
 
@@ -101,6 +103,7 @@ impl Vga {
             graphics_controller_registers: GraphicsControllerRegisters::new(),
             attribute_controller_registers: AttributeControllerRegisters::new(),
             crtc_controller_registers: CrtcControllerRegisters::new(),
+            color_palette_registers: ColorPaletteRegisters::new(),
             most_recent_video_mode: None,
         }
     }
@@ -131,21 +134,76 @@ impl Vga {
         self.most_recent_video_mode
     }
 
-    /// `I/O Address Select` Bit 0 `(value & 0x1)` of MSR selects 3Bxh or 3Dxh as the I/O address for the CRT Controller
-    /// registers, the Feature Control Register (FCR), and Input Status Register 1 (ST01). Presently
-    /// ignored (whole range is claimed), but will "ignore" 3Bx for color configuration or 3Dx for
-    /// monochrome.
-    /// Note that it is typical in AGP chipsets to shadow this bit and properly steer I/O cycles to the
-    /// proper bus for operation where a MDA exists on another bus such as ISA.
-    ///
-    /// 0 = Select 3Bxh I/O address `(EmulationMode::Mda)`
-    ///
-    /// 1 = Select 3Dxh I/O address `(EmulationMode:Cga)`
-    fn get_emulation_mode(&mut self) -> EmulationMode {
+    /// Returns the current value of the miscellaneous output register.
+    pub fn read_msr(&mut self) -> u8 {
+        self.general_registers.read_msr()
+    }
+
+    /// Returns the current value of the sequencer register, as determined by `index`.
+    pub fn read_sequencer(&mut self, index: SequencerIndex) -> u8 {
+        self.sequencer_registers.read(index)
+    }
+
+    /// Returns the current value of the graphics controller register, as determined by `index`.
+    pub fn read_graphics_controller(&mut self, index: GraphicsControllerIndex) -> u8 {
+        self.graphics_controller_registers.read(index)
+    }
+
+    /// Returns the current value of the attribute controller register, as determined by `emulation_mode`
+    /// and `index`.
+    pub fn read_attribute_controller(
+        &mut self,
+        emulation_mode: EmulationMode,
+        index: AttributeControllerIndex,
+    ) -> u8 {
+        self.attribute_controller_registers
+            .read(emulation_mode, index)
+    }
+
+    /// Returns the current value of the crtc controller, as determined by `emulation_mode`
+    /// and `index`.
+    pub fn read_crtc_controller(
+        &mut self,
+        emulation_mode: EmulationMode,
+        index: CrtcControllerIndex,
+    ) -> u8 {
+        self.crtc_controller_registers.read(emulation_mode, index)
+    }
+
+    /// Writes `value` to the crtc controller, as determined by `index`.
+    pub fn write_crtc_controller(
+        &mut self,
+        emulation_mode: EmulationMode,
+        index: CrtcControllerIndex,
+        value: u8,
+    ) {
+        self.crtc_controller_registers
+            .write(emulation_mode, index, value);
+    }
+
+    /// Returns the current `EmulationMode` as determined by the miscellaneous output register.
+    pub fn get_emulation_mode(&mut self) -> EmulationMode {
         EmulationMode::from(self.general_registers.read_msr() & 0x1)
     }
 
-    fn load_font(&mut self, vga_font: &VgaFont) {
+    /// Loads a new palette into the vga, as specified by `palette`.
+    ///
+    /// Each palette must be `PALETTE_SIZE` bytes long, with every 3
+    /// bytes representing one color `(R, G, B)`.
+    pub fn load_palette(&mut self, palette: &[u8; PALETTE_SIZE]) {
+        self.color_palette_registers.load_palette(palette);
+    }
+
+    /// Reads the current vga palette into `palette`.
+    ///
+    /// Each palette must be `PALETTE_SIZE` bytes long, with every 3
+    /// bytes representing one color `(R, G, B)`.
+    pub fn read_palette(&mut self, palette: &mut [u8; PALETTE_SIZE]) {
+        self.color_palette_registers.read_palette(palette);
+    }
+
+    /// Loads a vga text mode font as specified by `vga_font`.
+    pub fn load_font(&mut self, vga_font: &VgaFont) {
         // Save registers
         let (
             plane_mask,
@@ -284,21 +342,18 @@ impl Vga {
     /// Sets the video card to Mode 40x25.
     fn set_video_mode_40x25(&mut self) {
         self.set_registers(&MODE_40X25_CONFIGURATION);
-        self.load_font(&TEXT_8X16_FONT);
         self.most_recent_video_mode = Some(VideoMode::Mode40x25);
     }
 
     /// Sets the video card to Mode 40x50.
     fn set_video_mode_40x50(&mut self) {
         self.set_registers(&MODE_40X50_CONFIGURATION);
-        self.load_font(&TEXT_8X8_FONT);
         self.most_recent_video_mode = Some(VideoMode::Mode40x50);
     }
 
     /// Sets the video card to Mode 80x25.
     fn set_video_mode_80x25(&mut self) {
         self.set_registers(&MODE_80X25_CONFIGURATION);
-        self.load_font(&TEXT_8X16_FONT);
         self.most_recent_video_mode = Some(VideoMode::Mode80x25);
     }
 

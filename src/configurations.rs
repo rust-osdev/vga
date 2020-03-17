@@ -1,3 +1,5 @@
+//! Common video configurations used in vga programming.
+
 use super::registers::{
     AttributeControllerIndex, CrtcControllerIndex, GraphicsControllerIndex, SequencerIndex,
 };
@@ -5,10 +7,15 @@ use super::registers::{
 /// Represents a set of vga registers for a given mode.
 #[derive(Debug)]
 pub struct VgaConfiguration {
+    /// Represents the configuration value for the miscellaneous output register.
     pub miscellaneous_output: u8,
+    /// Represents the configuration values for the sequencer registers.
     pub sequencer_registers: &'static [(SequencerIndex, u8)],
+    /// Represents the configuration values for the crtc controller registers.
     pub crtc_controller_registers: &'static [(CrtcControllerIndex, u8)],
+    /// Represents the configuration values for the graphics controller registers.
     pub graphics_controller_registers: &'static [(GraphicsControllerIndex, u8)],
+    /// Represents the configuration values for the attribute controller registers.
     pub attribute_controller_registers: &'static [(AttributeControllerIndex, u8)],
 }
 
@@ -34,8 +41,8 @@ pub const MODE_40X25_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::Overflow, 0x1F),
         (CrtcControllerIndex::PresetRowScan, 0x00),
         (CrtcControllerIndex::MaximumScanLine, 0x4F),
-        (CrtcControllerIndex::TextCursorStart, 0x0A),
-        (CrtcControllerIndex::TextCursorEnd, 0x20),
+        (CrtcControllerIndex::TextCursorStart, 0x0D),
+        (CrtcControllerIndex::TextCursorEnd, 0x0E),
         (CrtcControllerIndex::StartAddressHigh, 0x00),
         (CrtcControllerIndex::StartAddressLow, 0x00),
         (CrtcControllerIndex::TextCursorLocationHigh, 0x00),
@@ -44,7 +51,7 @@ pub const MODE_40X25_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::VerticalSyncEnd, 0x8E),
         (CrtcControllerIndex::VerticalDisplayEnableEnd, 0x8F),
         (CrtcControllerIndex::Offset, 0x14),
-        (CrtcControllerIndex::UnderlineLocationRegister, 0x1F),
+        (CrtcControllerIndex::UnderlineLocation, 0x1F),
         (CrtcControllerIndex::VerticalBlankingStart, 0x96),
         (CrtcControllerIndex::VerticalBlankingEnd, 0xB9),
         (CrtcControllerIndex::ModeControl, 0xA3),
@@ -108,8 +115,8 @@ pub const MODE_40X50_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::Overflow, 0x1F),
         (CrtcControllerIndex::PresetRowScan, 0x00),
         (CrtcControllerIndex::MaximumScanLine, 0x47),
-        (CrtcControllerIndex::TextCursorStart, 0x0A),
-        (CrtcControllerIndex::TextCursorEnd, 0x20),
+        (CrtcControllerIndex::TextCursorStart, 0x06),
+        (CrtcControllerIndex::TextCursorEnd, 0x07),
         (CrtcControllerIndex::StartAddressHigh, 0x00),
         (CrtcControllerIndex::StartAddressLow, 0x00),
         (CrtcControllerIndex::TextCursorLocationHigh, 0x04),
@@ -118,7 +125,7 @@ pub const MODE_40X50_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::VerticalSyncEnd, 0x8E),
         (CrtcControllerIndex::VerticalDisplayEnableEnd, 0x8F),
         (CrtcControllerIndex::Offset, 0x14),
-        (CrtcControllerIndex::UnderlineLocationRegister, 0x1F),
+        (CrtcControllerIndex::UnderlineLocation, 0x1F),
         (CrtcControllerIndex::VerticalBlankingStart, 0x96),
         (CrtcControllerIndex::VerticalBlankingEnd, 0xB9),
         (CrtcControllerIndex::ModeControl, 0xA3),
@@ -192,7 +199,7 @@ pub const MODE_80X25_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::VerticalSyncEnd, 0x0E),
         (CrtcControllerIndex::VerticalDisplayEnableEnd, 0x8F),
         (CrtcControllerIndex::Offset, 0x28),
-        (CrtcControllerIndex::UnderlineLocationRegister, 0x1F),
+        (CrtcControllerIndex::UnderlineLocation, 0x1F),
         (CrtcControllerIndex::VerticalBlankingStart, 0x96),
         (CrtcControllerIndex::VerticalBlankingEnd, 0xB9),
         (CrtcControllerIndex::ModeControl, 0xA3),
@@ -267,7 +274,7 @@ pub const MODE_640X480X16_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (CrtcControllerIndex::VerticalSyncEnd, 0x0C),
         (CrtcControllerIndex::VerticalDisplayEnableEnd, 0xDF),
         (CrtcControllerIndex::Offset, 0x28),
-        (CrtcControllerIndex::UnderlineLocationRegister, 0x00),
+        (CrtcControllerIndex::UnderlineLocation, 0x00),
         (CrtcControllerIndex::VerticalBlankingStart, 0xE7),
         (CrtcControllerIndex::VerticalBlankingEnd, 0x04),
         (CrtcControllerIndex::ModeControl, 0xE3),
