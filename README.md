@@ -1,3 +1,5 @@
+[![Build Status](https://github.com/rust-osdev/vga/workflows/Build/badge.svg)](https://github.com/rust-osdev/vga/actions?query=workflow%3ABuild) [![Docs.rs Badge](https://docs.rs/vga/badge.svg)](https://docs.rs/vga/)
+
 # vga
 This crate provides vga specific functions, data structures,
 and access to various registers.
