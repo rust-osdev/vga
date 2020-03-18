@@ -15,7 +15,7 @@ use vga::colors::Color16Bit;
 use vga::writers::{ScreenCharacter, TextWriter, Text80x25};
 
 let text_mode = Text80x25::new();
-let screen_character = ScreenCharacter::new(b'T'Color16Bit::Yellow, Color16Bit::Black);
+let screen_character = ScreenCharacter::new(b'T', Color16Bit::Yellow, Color16Bit::Black);
 
 text_mode.set_mode();
 text_mode.clear_screen();
