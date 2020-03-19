@@ -31,12 +31,12 @@ impl ScreenCharacter {
     }
 
     /// Returns the `character` associated with the `ScreenCharacter`.
-    pub fn get_character(&self) -> u8 {
+    pub fn get_character(self) -> u8 {
         self.character
     }
 
     /// Returns the `color` associated with the `ScreenCharacter`.
-    pub fn get_color(&self) -> TextModeColor {
+    pub fn get_color(self) -> TextModeColor {
         self.color
     }
 }
