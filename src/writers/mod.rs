@@ -25,11 +25,19 @@ pub struct ScreenCharacter {
 }
 
 impl ScreenCharacter {
-    /// Creates a new `ScreenCharacter` with the specified `character`
-    /// and a `TextModeColor` with the specified `foreground` and `background`.
-    pub fn new(character: u8, foreground: Color16Bit, background: Color16Bit) -> ScreenCharacter {
-        let color = TextModeColor::new(foreground, background);
+    /// Creates a new `ScreenCharacter` with the specified `character` and `TextModeColor`.
+    pub fn new(character: u8, color: TextModeColor) -> ScreenCharacter {
         ScreenCharacter { character, color }
+    }
+
+    /// Returns the `character` associated with the `ScreenCharacter`.
+    pub fn get_character(self) -> u8 {
+        self.character
+    }
+
+    /// Returns the `color` associated with the `ScreenCharacter`.
+    pub fn get_color(self) -> TextModeColor {
+        self.color
     }
 }
 
@@ -96,6 +104,13 @@ pub trait TextWriter {
             CrtcControllerIndex::TextCursorStart,
             cursor_start & 0xDF,
         );
+    }
+
+    /// Returns the `ScreenCharacter` at the given `(x, y)` position.
+    fn read_character(&self, x: usize, y: usize) -> ScreenCharacter {
+        let (_vga, frame_buffer) = self.get_frame_buffer();
+        let offset = self.get_width() * y + x;
+        unsafe { frame_buffer.add(offset).read_volatile() }
     }
 
     /// Sets the size of the cursor, as specified by `scan_line_start` and `scan_line_end`.
