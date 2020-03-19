@@ -52,6 +52,16 @@ impl TextModeColor {
     pub const fn new(foreground: Color16Bit, background: Color16Bit) -> TextModeColor {
         TextModeColor((background as u8) << 4 | (foreground as u8))
     }
+
+    /// Sets the background color given the specified `background`;
+    pub fn set_background(&mut self, background: Color16Bit) {
+        self.0 = (background as u8) << 4 | (self.0 & 0x0F);
+    }
+
+    /// Sets the foreground color given the specified `foreground`.
+    pub fn set_foreground(&mut self, foreground: Color16Bit) {
+        self.0 = foreground as u8;
+    }
 }
 
 /// Represents the default vga 256 color palette.
@@ -105,3 +115,17 @@ pub const DEFAULT_PALETTE: [u8; PALETTE_SIZE] = [
     0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
     0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
 ];
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_set_foreground() {
+        let mut color = TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black);
+        color.set_foreground(Color16Bit::Red);
+        color.set_background(Color16Bit::DarkGrey);
+        assert_eq!(color.0 & 0x0F, Color16Bit::Red as u8);
+        assert_eq!(color.0 >> 4, Color16Bit::DarkGrey as u8);
+    }
+}
