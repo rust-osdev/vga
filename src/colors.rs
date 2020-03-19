@@ -124,8 +124,13 @@ mod test {
     fn test_set_foreground() {
         let mut color = TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black);
         color.set_foreground(Color16Bit::Red);
-        color.set_background(Color16Bit::DarkGrey);
         assert_eq!(color.0 & 0x0F, Color16Bit::Red as u8);
+    }
+
+    #[test]
+    fn test_set_background() {
+        let mut color = TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black);
+        color.set_background(Color16Bit::DarkGrey);
         assert_eq!(color.0 >> 4, Color16Bit::DarkGrey as u8);
     }
 }
