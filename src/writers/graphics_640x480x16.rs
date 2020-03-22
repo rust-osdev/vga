@@ -2,7 +2,6 @@ use crate::{
     colors::{Color16Bit, DEFAULT_PALETTE},
     vga::{PlaneMask, Vga, VideoMode, VGA},
 };
-use core::convert::TryInto;
 use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 640;
@@ -36,6 +35,7 @@ impl Graphics640x480x16 {
     pub fn clear_screen(&self) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         vga.set_plane_mask(PlaneMask::ALL_PLANES);
+        vga.set_graphics_enable_set_reset(PlaneMask::NONE);
         for offset in 0..ALL_PLANES_SCREEN_SIZE {
             unsafe {
                 frame_buffer
@@ -50,24 +50,20 @@ impl Graphics640x480x16 {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         let offset = x / 8 + (WIDTH / 8) * y;
 
-        // Store the current value for masking.
-        let x = x & 7;
-        let mask = 0x80 >> (x & 7);
-        let mut plane_mask = 0x01;
+        // Write to all 4 planes
+        vga.set_plane_mask(PlaneMask::ALL_PLANES);
 
-        for plane in 0u8..4u8 {
-            vga.set_read_plane(plane.try_into().unwrap());
-            vga.set_plane_mask(plane.try_into().unwrap());
-            let current_value = unsafe { frame_buffer.add(offset).read_volatile() };
-            let new_value = if plane_mask & color as u8 != 0 {
-                current_value | mask
-            } else {
-                current_value & !mask
-            };
-            unsafe {
-                frame_buffer.add(offset).write_volatile(new_value);
-            }
-            plane_mask <<= 1;
+        // Set the bits we want set/reset to the color
+        vga.set_graphics_set_reset(color);
+
+        // Enable set/reset for all planes
+        vga.set_graphics_enable_set_reset(PlaneMask::ALL_PLANES);
+        unsafe {
+            // In write mode 0, when enable set/reset is turned on, cpu data
+            // is replaced with the data from the set/reset register. Since
+            // we're using set/reset for all 4 planes, it doesn't matter what value
+            // we write to the memory address.
+            frame_buffer.add(offset).write(0x0);
         }
     }
 

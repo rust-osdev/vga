@@ -1,7 +1,7 @@
 //! Provides access to the vga graphics card.
 
 use super::{
-    colors::PALETTE_SIZE,
+    colors::{Color16Bit, PALETTE_SIZE},
     configurations::{
         VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
         MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
@@ -89,6 +89,8 @@ impl From<ReadPlane> for u8 {
 bitflags! {
     /// Represents the plane masks of the `SequencerIndex::PlaneMask` register.
     pub struct PlaneMask: u8 {
+        /// Represents none of the plane masks of vga memory.
+        const NONE = 0b0000_0000;
         /// Represents `Plane0` of vga memory.
         const PLANE0 = 0b0000_0001;
         /// Represents `Plane1` of vga memory.
@@ -97,7 +99,7 @@ bitflags! {
         const PLANE2 = 0b0000_0100;
         /// Represents `Plane3` of vga memory.
         const PLANE3 = 0b0000_1000;
-        /// Represents a combination of all the plane masks.
+        /// Represents all of the plane masks of vga memory.
         const ALL_PLANES = Self::PLANE0.bits() | Self::PLANE1.bits() | Self::PLANE2.bits() | Self::PLANE3.bits();
     }
 }
@@ -349,6 +351,32 @@ impl Vga {
         let read_plane = u8::from(read_plane) & 0x3;
         self.graphics_controller_registers
             .write(GraphicsControllerIndex::ReadPlaneSelect, read_plane);
+    }
+
+    /// Sets the value to use for `GraphicsControllerIndex::SetReset`,
+    /// as spcified by `color`.
+    pub fn set_graphics_set_reset(&mut self, color: Color16Bit) {
+        let original_value = self
+            .graphics_controller_registers
+            .read(GraphicsControllerIndex::SetReset)
+            & 0xF0;
+        self.graphics_controller_registers.write(
+            GraphicsControllerIndex::SetReset,
+            original_value | u8::from(color),
+        );
+    }
+
+    /// Sets which planes are effected by `GraphicsControllerIndex::SetReset`,
+    /// as specified by `plane_mask`.
+    pub fn set_graphics_enable_set_reset(&mut self, plane_mask: PlaneMask) {
+        let original_value = self
+            .graphics_controller_registers
+            .read(GraphicsControllerIndex::EnableSetReset)
+            & 0xF0;
+        self.graphics_controller_registers.write(
+            GraphicsControllerIndex::EnableSetReset,
+            original_value | u8::from(plane_mask),
+        );
     }
 
     fn set_registers(&mut self, configuration: &VgaConfiguration) {

@@ -41,6 +41,12 @@ pub enum Color16Bit {
     White = 0xF,
 }
 
+impl From<Color16Bit> for u8 {
+    fn from(value: Color16Bit) -> u8 {
+        value as u8
+    }
+}
+
 /// Represents a color for vga text modes.
 #[derive(Debug, Copy, Clone)]
 #[repr(transparent)]
