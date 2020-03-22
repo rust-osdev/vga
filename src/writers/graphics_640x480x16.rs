@@ -1,13 +1,12 @@
 use crate::{
     colors::{Color16Bit, DEFAULT_PALETTE},
-    vga::{Plane, Vga, VideoMode, VGA},
+    vga::{Vga, VideoMode, VGA},
 };
+use core::convert::TryInto;
 use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 480;
-
-static PLANES: &[Plane] = &[Plane::Plane0, Plane::Plane1, Plane::Plane2, Plane::Plane3];
 
 /// A basic interface for interacting with vga graphics mode 640x480x16
 ///
@@ -37,7 +36,7 @@ impl Graphics640x480x16 {
         // TODO: Clear the screen by using 4-plane mode instead of slow `set_pixel`.
         for x in 0..WIDTH {
             for y in 0..HEIGHT {
-                self.set_pixel(x, y, Color16Bit::Yellow);
+                self.set_pixel(x, y, Color16Bit::Black);
             }
         }
     }
@@ -56,8 +55,9 @@ impl Graphics640x480x16 {
         let mask = 0x80 >> (x & 7);
         let mut plane_mask = 0x01;
 
-        for plane in PLANES {
-            vga.set_plane(*plane);
+        for plane in 0u8..4u8 {
+            vga.set_read_plane(plane.try_into().unwrap());
+            vga.set_plane_mask(plane.try_into().unwrap());
             let current_value = unsafe { frame_buffer.add(offset).read_volatile() };
             let new_value = if plane_mask & color as u8 != 0 {
                 current_value | mask

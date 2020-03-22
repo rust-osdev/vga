@@ -58,7 +58,7 @@ pub enum SequencerIndex {
     SequencerReset = 0x0,
     /// Represents the `Clocking Mode` register index.
     ClockingMode = 0x1,
-    /// Represents the Plane/Map mask register index.
+    /// Represents the `Plane/Map` mask register index.
     PlaneMask = 0x2,
     /// Represents the `Character Font` register index.
     CharacterFont = 0x3,

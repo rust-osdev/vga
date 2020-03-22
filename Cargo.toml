@@ -19,6 +19,7 @@ repository = "https://github.com/rust-osdev/vga"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bitflags = "1.2.1"
 conquer-once = { version = "0.2.0", default-features = false }
 spinning_top = { version = "0.1.0", features = ["nightly"] }
 x86_64 = "0.9.6"

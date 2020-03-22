@@ -13,7 +13,9 @@ use super::{
         GraphicsControllerIndex, GraphicsControllerRegisters, SequencerIndex, SequencerRegisters,
     },
 };
+use bitflags::bitflags;
 use conquer_once::spin::Lazy;
+use core::convert::TryFrom;
 use spinning_top::Spinlock;
 
 /// Provides mutable access to the vga graphics card.
@@ -49,11 +51,11 @@ impl From<FrameBuffer> for u32 {
     }
 }
 
-/// Represents a plane for reading and writing vga data.
+/// Represents a plane for the `GraphicsControllerIndex::ReadPlaneSelect` register.
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone)]
 #[repr(u8)]
-pub enum Plane {
+pub enum ReadPlane {
     /// Represents `Plane 0 (0x0)`.
     Plane0 = 0x0,
     /// Represents `Plane 1 (0x1)`.
@@ -64,9 +66,57 @@ pub enum Plane {
     Plane3 = 0x3,
 }
 
-impl From<Plane> for u8 {
-    fn from(value: Plane) -> u8 {
+impl TryFrom<u8> for ReadPlane {
+    type Error = &'static str;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(ReadPlane::Plane0),
+            1 => Ok(ReadPlane::Plane1),
+            2 => Ok(ReadPlane::Plane2),
+            3 => Ok(ReadPlane::Plane3),
+            _ => Err("ReadPlane only accepts values between 0-3!"),
+        }
+    }
+}
+
+impl From<ReadPlane> for u8 {
+    fn from(value: ReadPlane) -> u8 {
         value as u8
+    }
+}
+
+bitflags! {
+    /// Represents the plane masks of the `SequencerIndex::PlaneMask` register.
+    pub struct PlaneMask: u8 {
+        /// Represents `Plane0` of vga memory.
+        const PLANE0 = 0b00000001;
+        /// Represents `Plane1` of vga memory.
+        const PLANE1 = 0b00000010;
+        /// Represents `Plane2` of vga memory.
+        const PLANE2 = 0b00000100;
+        /// Represents `Plane3` of vga memory.
+        const PLANE3 = 0b00001000;
+    }
+}
+
+impl TryFrom<u8> for PlaneMask {
+    type Error = &'static str;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(PlaneMask::PLANE0),
+            1 => Ok(PlaneMask::PLANE1),
+            2 => Ok(PlaneMask::PLANE2),
+            3 => Ok(PlaneMask::PLANE3),
+            _ => Err("PlaneMask only accepts values between 0-3!"),
+        }
+    }
+}
+
+impl From<PlaneMask> for u8 {
+    fn from(value: PlaneMask) -> u8 {
+        value.bits()
     }
 }
 
@@ -226,7 +276,7 @@ impl Vga {
         );
 
         // Write font to plane
-        self.set_plane(Plane::Plane2);
+        self.set_plane_mask(PlaneMask::PLANE2);
 
         let frame_buffer = u32::from(self.get_frame_buffer()) as *mut u8;
 
@@ -286,16 +336,17 @@ impl Vga {
         )
     }
 
-    /// Turns on the given `Plane` in the vga graphics card.
-    pub fn set_plane(&mut self, plane: Plane) {
-        let mut plane = u8::from(plane);
-
-        plane &= 0x3;
-
-        self.graphics_controller_registers
-            .write(GraphicsControllerIndex::ReadPlaneSelect, plane);
+    /// Sets the plane mask of the sequencer controller, as specified by `plane_mask`.
+    pub fn set_plane_mask(&mut self, plane_mask: PlaneMask) {
         self.sequencer_registers
-            .write(SequencerIndex::PlaneMask, 0x1 << plane);
+            .write(SequencerIndex::PlaneMask, u8::from(plane_mask));
+    }
+
+    /// Sets the read plane of the graphics controller, as specified by `read_plane`.
+    pub fn set_read_plane(&mut self, read_plane: ReadPlane) {
+        let read_plane = u8::from(read_plane) & 0x3;
+        self.graphics_controller_registers
+            .write(GraphicsControllerIndex::ReadPlaneSelect, read_plane);
     }
 
     fn set_registers(&mut self, configuration: &VgaConfiguration) {
