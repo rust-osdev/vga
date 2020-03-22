@@ -14,7 +14,7 @@ pub use color_palette::ColorPaletteRegisters;
 pub use crtc_controller::{CrtcControllerIndex, CrtcControllerRegisters};
 pub use general::GeneralRegisters;
 pub use graphics_controller::{GraphicsControllerIndex, GraphicsControllerRegisters};
-pub use sequencer::{SequencerIndex, SequencerRegisters};
+pub use sequencer::{PlaneMask, SequencerIndex, SequencerRegisters};
 
 const ST00_READ_ADDRESS: u16 = 0x3C2;
 const ST01_READ_CGA_ADDRESS: u16 = 0x3DA;

@@ -17,7 +17,7 @@ pub struct GeneralRegisters {
 }
 
 impl GeneralRegisters {
-    pub fn new() -> GeneralRegisters {
+    pub(crate) fn new() -> GeneralRegisters {
         GeneralRegisters {
             st00_read: PortReadOnly::new(ST00_READ_ADDRESS),
             st01_read_cga: PortReadOnly::new(ST01_READ_CGA_ADDRESS),

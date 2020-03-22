@@ -1,6 +1,7 @@
 use crate::{
     colors::{Color16Bit, DEFAULT_PALETTE},
-    vga::{PlaneMask, Vga, VideoMode, VGA},
+    registers::PlaneMask,
+    vga::{Vga, VideoMode, VGA},
 };
 use core::convert::TryInto;
 use spinning_top::SpinlockGuard;
@@ -35,7 +36,8 @@ impl Graphics640x480x16 {
     /// Clears the screen by setting all pixels to `Color16Bit::Black`.
     pub fn clear_screen(&self) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
-        vga.set_plane_mask(PlaneMask::ALL_PLANES);
+        vga.sequencer_registers
+            .set_plane_mask(PlaneMask::ALL_PLANES);
         vga.set_graphics_enable_set_reset(PlaneMask::NONE);
         for offset in 0..ALL_PLANES_SCREEN_SIZE {
             unsafe {
@@ -58,7 +60,8 @@ impl Graphics640x480x16 {
 
         for plane in 0u8..4u8 {
             vga.set_read_plane(plane.try_into().unwrap());
-            vga.set_plane_mask(plane.try_into().unwrap());
+            vga.sequencer_registers
+                .set_plane_mask(plane.try_into().unwrap());
             let current_value = unsafe { frame_buffer.add(offset).read_volatile() };
             let new_value = if plane_mask & color as u8 != 0 {
                 current_value | mask

@@ -67,7 +67,7 @@ pub struct AttributeControllerRegisters {
 }
 
 impl AttributeControllerRegisters {
-    pub fn new() -> AttributeControllerRegisters {
+    pub(crate) fn new() -> AttributeControllerRegisters {
         AttributeControllerRegisters {
             arx_index: Port::new(ARX_INDEX_ADDRESS),
             arx_data: Port::new(ARX_DATA_ADDRESS),

@@ -44,7 +44,7 @@ pub struct GraphicsControllerRegisters {
 }
 
 impl GraphicsControllerRegisters {
-    pub fn new() -> GraphicsControllerRegisters {
+    pub(crate) fn new() -> GraphicsControllerRegisters {
         GraphicsControllerRegisters {
             grx_index: Port::new(GRX_INDEX_ADDRESS),
             grx_data: Port::new(GRX_DATA_ADDRESS),

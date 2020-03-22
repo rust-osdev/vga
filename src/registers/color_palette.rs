@@ -12,7 +12,7 @@ pub struct ColorPaletteRegisters {
 }
 
 impl ColorPaletteRegisters {
-    pub fn new() -> ColorPaletteRegisters {
+    pub(crate) fn new() -> ColorPaletteRegisters {
         ColorPaletteRegisters {
             data_port: Port::new(COLOR_PALETTE_DATA_ADDRESS),
             index_read_port: Port::new(COLOR_PALETTE_INDEX_READ_ADDRESS),

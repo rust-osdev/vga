@@ -79,7 +79,7 @@ pub struct CrtcControllerRegisters {
 }
 
 impl CrtcControllerRegisters {
-    pub fn new() -> CrtcControllerRegisters {
+    pub(crate) fn new() -> CrtcControllerRegisters {
         CrtcControllerRegisters {
             crx_index_cga: Port::new(CRX_INDEX_CGA_ADDRESS),
             crx_index_mda: Port::new(CRX_INDEX_MDA_ADDRESS),
