@@ -1,12 +1,13 @@
 use crate::{
     colors::{Color16Bit, DEFAULT_PALETTE},
-    vga::{Vga, VideoMode, VGA},
+    vga::{PlaneMask, Vga, VideoMode, VGA},
 };
 use core::convert::TryInto;
 use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 480;
+const ALL_PLANES_SCREEN_SIZE: usize = (WIDTH * HEIGHT) / 4;
 
 /// A basic interface for interacting with vga graphics mode 640x480x16
 ///
@@ -33,20 +34,19 @@ impl Graphics640x480x16 {
 
     /// Clears the screen by setting all pixels to `Color16Bit::Black`.
     pub fn clear_screen(&self) {
-        // TODO: Clear the screen by using 4-plane mode instead of slow `set_pixel`.
-        for x in 0..WIDTH {
-            for y in 0..HEIGHT {
-                self.set_pixel(x, y, Color16Bit::Black);
+        let (mut vga, frame_buffer) = self.get_frame_buffer();
+        vga.set_plane_mask(PlaneMask::ALL_PLANES);
+        for offset in 0..ALL_PLANES_SCREEN_SIZE {
+            unsafe {
+                frame_buffer
+                    .add(offset)
+                    .write_volatile(Color16Bit::Black as u8);
             }
         }
     }
 
     /// Sets the given pixel at `(x, y)` to the given `color`.
-    ///
-    /// Panics if `x >= 640` or `y >= 480`.
     pub fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
-        assert!(x < WIDTH, "x >= {}", WIDTH);
-        assert!(y < HEIGHT, "y >= {}", HEIGHT);
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         let offset = x / 8 + (WIDTH / 8) * y;
 
