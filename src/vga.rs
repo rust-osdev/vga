@@ -102,11 +102,17 @@ pub enum VideoMode {
 /// Represents a vga graphics card with it's common registers,
 /// as well as the most recent video mode.
 pub struct Vga {
+    /// Represents the general registers on vga hardware.
     pub general_registers: GeneralRegisters,
+    /// Represents the sequencer registers on vga hardware.
     pub sequencer_registers: SequencerRegisters,
+    /// Represents the graphics controller registers on vga hardware.
     pub graphics_controller_registers: GraphicsControllerRegisters,
+    /// Represents the attribute controller registers on vga hardware.
     pub attribute_controller_registers: AttributeControllerRegisters,
+    /// Represents the crtc controller registers on vga hardware.
     pub crtc_controller_registers: CrtcControllerRegisters,
+    /// Represents the color palette registers on vga hardware.
     pub color_palette_registers: ColorPaletteRegisters,
     most_recent_video_mode: Option<VideoMode>,
 }

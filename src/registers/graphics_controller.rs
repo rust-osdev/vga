@@ -37,6 +37,7 @@ impl From<GraphicsControllerIndex> for u8 {
     }
 }
 
+/// Represents the graphics controller registers on vga hardware.
 #[derive(Debug)]
 pub struct GraphicsControllerRegisters {
     grx_index: Port<u8>,
@@ -51,11 +52,15 @@ impl GraphicsControllerRegisters {
         }
     }
 
+    /// Reads the current value from the graphics controller, as specified
+    /// by `index`.
     pub fn read(&mut self, index: GraphicsControllerIndex) -> u8 {
         self.set_index(index);
         unsafe { self.grx_data.read() }
     }
 
+    /// Writes the `value` to the graphics controller, as specified
+    /// by `index.
     pub fn write(&mut self, index: GraphicsControllerIndex, value: u8) {
         self.set_index(index);
         unsafe {

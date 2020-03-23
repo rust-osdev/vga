@@ -4,6 +4,7 @@ use super::{
 };
 use x86_64::instructions::port::{PortReadOnly, PortWriteOnly};
 
+/// Represents the general registers on vga hardware.
 #[derive(Debug)]
 pub struct GeneralRegisters {
     st00_read: PortReadOnly<u8>,
@@ -30,10 +31,12 @@ impl GeneralRegisters {
         }
     }
 
+    /// Reads the current value from the miscellaneous output register.
     pub fn read_msr(&mut self) -> u8 {
         unsafe { self.msr_read.read() }
     }
 
+    /// Writes the `value` to the miscellaneous output register.
     pub fn write_msr(&mut self, value: u8) {
         unsafe {
             self.msr_write.write(value);

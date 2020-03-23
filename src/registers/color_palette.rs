@@ -4,6 +4,7 @@ use super::{
 };
 use x86_64::instructions::port::Port;
 
+/// Represents the color palette registers on vga hardware.
 #[derive(Debug)]
 pub struct ColorPaletteRegisters {
     data_port: Port<u8>,
@@ -20,6 +21,8 @@ impl ColorPaletteRegisters {
         }
     }
 
+    /// Loads a 256 color palette, as specified by `palette`, with every 3
+    /// bytes representing a color.
     pub fn load_palette(&mut self, palette: &[u8; PALETTE_SIZE]) {
         unsafe {
             self.index_write_port.write(0);
@@ -31,6 +34,8 @@ impl ColorPaletteRegisters {
         }
     }
 
+    /// Reads the current 256 color palette into `palette`, with every 3
+    /// bytes representing a color.
     pub fn read_palette(&mut self, palette: &mut [u8; PALETTE_SIZE]) {
         unsafe {
             self.index_read_port.write(0);

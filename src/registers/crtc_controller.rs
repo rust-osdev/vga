@@ -70,6 +70,7 @@ impl From<CrtcControllerIndex> for u8 {
     }
 }
 
+/// Represents the crtc controller registers on vga hardware.
 #[derive(Debug)]
 pub struct CrtcControllerRegisters {
     crx_index_cga: Port<u8>,
@@ -88,11 +89,15 @@ impl CrtcControllerRegisters {
         }
     }
 
+    /// Reads the current value from the crtc controller, as specified
+    /// by `emulation_mode` and `index`.
     pub fn read(&mut self, emulation_mode: EmulationMode, index: CrtcControllerIndex) -> u8 {
         self.set_index(emulation_mode, index);
         unsafe { self.get_data_port(emulation_mode).read() }
     }
 
+    /// Writes the `value` to the crtc_controller, as specified
+    /// by `emulation_mode` and `index`.
     pub fn write(&mut self, emulation_mode: EmulationMode, index: CrtcControllerIndex, value: u8) {
         self.set_index(emulation_mode, index);
         unsafe {

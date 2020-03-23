@@ -65,6 +65,7 @@ impl From<SequencerIndex> for u8 {
     }
 }
 
+/// Represents the sequencer registers on vga hardware.
 #[derive(Debug)]
 pub struct SequencerRegisters {
     srx_index: Port<u8>,
@@ -79,11 +80,13 @@ impl SequencerRegisters {
         }
     }
 
+    /// Reads the current value from the sequencer, as specified by `index`.
     pub fn read(&mut self, index: SequencerIndex) -> u8 {
         self.set_index(index);
         unsafe { self.srx_data.read() }
     }
 
+    /// Writes the `value` to the sequencer, as specified by `index`.
     pub fn write(&mut self, index: SequencerIndex, value: u8) {
         self.set_index(index);
         unsafe {

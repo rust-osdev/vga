@@ -58,6 +58,7 @@ impl From<AttributeControllerIndex> for u8 {
     }
 }
 
+/// Represents the attribute controller registers on vga hardware.
 #[derive(Debug)]
 pub struct AttributeControllerRegisters {
     arx_index: Port<u8>,
@@ -76,12 +77,16 @@ impl AttributeControllerRegisters {
         }
     }
 
+    /// Reads the current value of the attribute controller, as specified
+    /// by `emulation_mode` and `index`.
     pub fn read(&mut self, emulation_mode: EmulationMode, index: AttributeControllerIndex) -> u8 {
         self.toggle_index(emulation_mode);
         self.set_index(index);
         unsafe { self.arx_data.read() }
     }
 
+    /// Writes the `value` to the attribute controller, as specified
+    /// `emulation_mode` and `index`.
     pub fn write(
         &mut self,
         emulation_mode: EmulationMode,
@@ -92,22 +97,6 @@ impl AttributeControllerRegisters {
         self.set_index(index);
         unsafe {
             self.arx_index.write(value);
-        }
-    }
-
-    fn set_index(&mut self, index: AttributeControllerIndex) {
-        unsafe {
-            self.arx_index.write(u8::from(index));
-        }
-    }
-
-    fn toggle_index(&mut self, emulation_mode: EmulationMode) {
-        let st01_read = match emulation_mode {
-            EmulationMode::Cga => &mut self.st01_read_cga,
-            EmulationMode::Mda => &mut self.st01_read_mda,
-        };
-        unsafe {
-            st01_read.read();
         }
     }
 
@@ -140,6 +129,22 @@ impl AttributeControllerRegisters {
         let arx_index_value = unsafe { self.arx_index.read() };
         unsafe {
             self.arx_index.write(arx_index_value | 0x20);
+        }
+    }
+
+    fn set_index(&mut self, index: AttributeControllerIndex) {
+        unsafe {
+            self.arx_index.write(u8::from(index));
+        }
+    }
+
+    fn toggle_index(&mut self, emulation_mode: EmulationMode) {
+        let st01_read = match emulation_mode {
+            EmulationMode::Cga => &mut self.st01_read_cga,
+            EmulationMode::Mda => &mut self.st01_read_mda,
+        };
+        unsafe {
+            st01_read.read();
         }
     }
 }
