@@ -45,7 +45,7 @@ impl TextWriter for Text40x25 {
 
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
-        vga.load_palette(&DEFAULT_PALETTE);
+        vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
         vga.load_font(&TEXT_8X16_FONT);
     }
 }

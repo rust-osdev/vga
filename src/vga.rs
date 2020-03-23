@@ -156,72 +156,9 @@ impl Vga {
         self.most_recent_video_mode
     }
 
-    /// Returns the current value of the miscellaneous output register.
-    pub fn read_msr(&mut self) -> u8 {
-        self.general_registers.read_msr()
-    }
-
-    /// Returns the current value of the sequencer register, as determined by `index`.
-    pub fn read_sequencer(&mut self, index: SequencerIndex) -> u8 {
-        self.sequencer_registers.read(index)
-    }
-
-    /// Returns the current value of the graphics controller register, as determined by `index`.
-    pub fn read_graphics_controller(&mut self, index: GraphicsControllerIndex) -> u8 {
-        self.graphics_controller_registers.read(index)
-    }
-
-    /// Returns the current value of the attribute controller register, as determined by `emulation_mode`
-    /// and `index`.
-    pub fn read_attribute_controller(
-        &mut self,
-        emulation_mode: EmulationMode,
-        index: AttributeControllerIndex,
-    ) -> u8 {
-        self.attribute_controller_registers
-            .read(emulation_mode, index)
-    }
-
-    /// Returns the current value of the crtc controller, as determined by `emulation_mode`
-    /// and `index`.
-    pub fn read_crtc_controller(
-        &mut self,
-        emulation_mode: EmulationMode,
-        index: CrtcControllerIndex,
-    ) -> u8 {
-        self.crtc_controller_registers.read(emulation_mode, index)
-    }
-
-    /// Writes `value` to the crtc controller, as determined by `index`.
-    pub fn write_crtc_controller(
-        &mut self,
-        emulation_mode: EmulationMode,
-        index: CrtcControllerIndex,
-        value: u8,
-    ) {
-        self.crtc_controller_registers
-            .write(emulation_mode, index, value);
-    }
-
     /// Returns the current `EmulationMode` as determined by the miscellaneous output register.
     pub fn get_emulation_mode(&mut self) -> EmulationMode {
         EmulationMode::from(self.general_registers.read_msr() & 0x1)
-    }
-
-    /// Loads a new palette into the vga, as specified by `palette`.
-    ///
-    /// Each palette must be `PALETTE_SIZE` bytes long, with every 3
-    /// bytes representing one color `(R, G, B)`.
-    pub fn load_palette(&mut self, palette: &[u8; PALETTE_SIZE]) {
-        self.color_palette_registers.load_palette(palette);
-    }
-
-    /// Reads the current vga palette into `palette`.
-    ///
-    /// Each palette must be `PALETTE_SIZE` bytes long, with every 3
-    /// bytes representing one color `(R, G, B)`.
-    pub fn read_palette(&mut self, palette: &mut [u8; PALETTE_SIZE]) {
-        self.color_palette_registers.read_palette(palette);
     }
 
     /// Loads a vga text mode font as specified by `vga_font`.

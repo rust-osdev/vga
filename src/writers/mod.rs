@@ -84,9 +84,10 @@ pub trait TextWriter {
     fn disable_cursor(&self) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         let emulation_mode = vga.get_emulation_mode();
-        let cursor_start =
-            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorStart);
-        vga.write_crtc_controller(
+        let cursor_start = vga
+            .crtc_controller_registers
+            .read(emulation_mode, CrtcControllerIndex::TextCursorStart);
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorStart,
             cursor_start | 0x20,
@@ -97,9 +98,10 @@ pub trait TextWriter {
     fn enable_cursor(&self) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         let emulation_mode = vga.get_emulation_mode();
-        let cursor_start =
-            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorStart);
-        vga.write_crtc_controller(
+        let cursor_start = vga
+            .crtc_controller_registers
+            .read(emulation_mode, CrtcControllerIndex::TextCursorStart);
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorStart,
             cursor_start & 0xDF,
@@ -122,16 +124,20 @@ pub trait TextWriter {
     fn set_cursor(&self, scan_line_start: u8, scan_line_end: u8) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         let emulation_mode = vga.get_emulation_mode();
-        let cursor_start =
-            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorStart) & 0xC0;
-        let cursor_end =
-            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorEnd) & 0xE0;
-        vga.write_crtc_controller(
+        let cursor_start = vga
+            .crtc_controller_registers
+            .read(emulation_mode, CrtcControllerIndex::TextCursorStart)
+            & 0xC0;
+        let cursor_end = vga
+            .crtc_controller_registers
+            .read(emulation_mode, CrtcControllerIndex::TextCursorEnd)
+            & 0xE0;
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorStart,
             cursor_start | scan_line_start,
         );
-        vga.write_crtc_controller(
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorEnd,
             cursor_end | scan_line_end,
@@ -146,12 +152,12 @@ pub trait TextWriter {
         let emulation_mode = vga.get_emulation_mode();
         let cursor_start = offset & 0xFF;
         let cursor_end = (offset >> 8) & 0xFF;
-        vga.write_crtc_controller(
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorLocationLow,
             cursor_start as u8,
         );
-        vga.write_crtc_controller(
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorLocationHigh,
             cursor_end as u8,

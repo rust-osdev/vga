@@ -82,7 +82,7 @@ impl Graphics640x480x16 {
 
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
-        vga.load_palette(&DEFAULT_PALETTE);
+        vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
     }
 
     /// Returns the start of the `FrameBuffer` as `*mut u8` as
