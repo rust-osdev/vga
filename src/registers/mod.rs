@@ -13,7 +13,7 @@ pub use attribute_controller::{AttributeControllerIndex, AttributeControllerRegi
 pub use color_palette::ColorPaletteRegisters;
 pub use crtc_controller::{CrtcControllerIndex, CrtcControllerRegisters};
 pub use general::GeneralRegisters;
-pub use graphics_controller::{GraphicsControllerIndex, GraphicsControllerRegisters};
+pub use graphics_controller::{GraphicsControllerIndex, GraphicsControllerRegisters, WriteMode};
 pub use sequencer::{PlaneMask, SequencerIndex, SequencerRegisters};
 
 const ST00_READ_ADDRESS: u16 = 0x3C2;

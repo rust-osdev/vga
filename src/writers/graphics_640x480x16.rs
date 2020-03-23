@@ -1,9 +1,8 @@
 use crate::{
     colors::{Color16Bit, DEFAULT_PALETTE},
-    registers::PlaneMask,
+    registers::{PlaneMask, WriteMode},
     vga::{Vga, VideoMode, VGA},
 };
-use core::convert::TryInto;
 use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 640;
@@ -34,17 +33,16 @@ impl Graphics640x480x16 {
     }
 
     /// Clears the screen by setting all pixels to `Color16Bit::Black`.
-    pub fn clear_screen(&self) {
+    pub fn clear_screen(&self, color: Color16Bit) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         vga.sequencer_registers
             .set_plane_mask(PlaneMask::ALL_PLANES);
+        vga.graphics_controller_registers.set_bit_mask(0xFF);
         vga.graphics_controller_registers
-            .write_enable_set_reset(PlaneMask::NONE);
+            .set_write_mode(WriteMode::Mode2);
         for offset in 0..ALL_PLANES_SCREEN_SIZE {
             unsafe {
-                frame_buffer
-                    .add(offset)
-                    .write_volatile(Color16Bit::Black as u8);
+                frame_buffer.add(offset).write_volatile(u8::from(color));
             }
         }
     }
@@ -53,27 +51,14 @@ impl Graphics640x480x16 {
     pub fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         let offset = x / 8 + (WIDTH / 8) * y;
-
-        // Store the current value for masking.
-        let x = x & 7;
-        let mask = 0x80 >> (x & 7);
-        let mut plane_mask = 0x01;
-
-        for plane in 0u8..4u8 {
-            vga.graphics_controller_registers
-                .write_read_plane(plane.try_into().unwrap());
-            vga.sequencer_registers
-                .set_plane_mask(plane.try_into().unwrap());
-            let current_value = unsafe { frame_buffer.add(offset).read_volatile() };
-            let new_value = if plane_mask & color as u8 != 0 {
-                current_value | mask
-            } else {
-                current_value & !mask
-            };
-            unsafe {
-                frame_buffer.add(offset).write_volatile(new_value);
-            }
-            plane_mask <<= 1;
+        let pixel_offset = x & 7;
+        vga.graphics_controller_registers
+            .set_write_mode(WriteMode::Mode2);
+        vga.graphics_controller_registers
+            .set_bit_mask(1 << pixel_offset);
+        unsafe {
+            frame_buffer.add(offset).read_volatile();
+            frame_buffer.add(offset).write_volatile(u8::from(color));
         }
     }
 

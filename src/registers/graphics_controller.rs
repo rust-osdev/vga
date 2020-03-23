@@ -73,6 +73,21 @@ impl From<GraphicsControllerIndex> for u8 {
     }
 }
 
+#[derive(Debug)]
+#[repr(u8)]
+pub enum WriteMode {
+    Mode0 = 0x0,
+    Mode1 = 0x1,
+    Mode2 = 0x2,
+    Mode3 = 0x3,
+}
+
+impl From<WriteMode> for u8 {
+    fn from(value: WriteMode) -> u8 {
+        value as u8
+    }
+}
+
 /// Represents the graphics controller registers on vga hardware.
 #[derive(Debug)]
 pub struct GraphicsControllerRegisters {
@@ -128,6 +143,18 @@ impl GraphicsControllerRegisters {
             GraphicsControllerIndex::EnableSetReset,
             original_value | u8::from(plane_mask),
         );
+    }
+
+    pub fn set_write_mode(&mut self, write_mode: WriteMode) {
+        let original_value = self.read(GraphicsControllerIndex::GraphicsMode) & 0xFC;
+        self.write(
+            GraphicsControllerIndex::GraphicsMode,
+            original_value | u8::from(write_mode),
+        );
+    }
+
+    pub fn set_bit_mask(&mut self, bit_mask: u8) {
+        self.write(GraphicsControllerIndex::BitMask, bit_mask);
     }
 
     fn set_index(&mut self, index: GraphicsControllerIndex) {
