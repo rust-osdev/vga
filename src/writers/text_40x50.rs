@@ -1,4 +1,4 @@
-use super::TextWriter;
+use super::{Screen, TextWriter};
 use crate::{
     colors::DEFAULT_PALETTE,
     fonts::TEXT_8X8_FONT,
@@ -29,7 +29,7 @@ const HEIGHT: usize = 50;
 #[derive(Default)]
 pub struct Text40x50;
 
-impl TextWriter for Text40x50 {
+impl Screen for Text40x50 {
     fn get_width(&self) -> usize {
         WIDTH
     }
@@ -38,6 +38,12 @@ impl TextWriter for Text40x50 {
         HEIGHT
     }
 
+    fn get_size(&self) -> usize {
+        WIDTH * HEIGHT
+    }
+}
+
+impl TextWriter for Text40x50 {
     /// Sets the graphics device to `VideoMode::Mode40x50`.
     fn set_mode(&self) {
         let mut vga = VGA.lock();

@@ -46,14 +46,18 @@ static BLANK_CHARACTER: ScreenCharacter = ScreenCharacter {
     color: TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black),
 };
 
-/// A helper trait used to interact with various vga text modes.
-pub trait TextWriter {
-    /// Returns the width of the `TextWriter`.
+/// A helper trait used to interact with various vga screens.
+pub trait Screen {
+    /// Returns the width of the `Screen`.
     fn get_width(&self) -> usize;
-
-    /// Returns the height of the `TextWriter`.
+    /// Returns the height of the `Screen`.
     fn get_height(&self) -> usize;
+    /// Returns the size of the `Screen`.
+    fn get_size(&self) -> usize;
+}
 
+/// A helper trait used to interact with various vga text modes.
+pub trait TextWriter: Screen {
     /// Sets the graphics device to a video mode as determined by
     /// the `TextWriter` implementation.
     fn set_mode(&self);
