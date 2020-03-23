@@ -38,7 +38,8 @@ impl Graphics640x480x16 {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         vga.sequencer_registers
             .set_plane_mask(PlaneMask::ALL_PLANES);
-        vga.set_graphics_enable_set_reset(PlaneMask::NONE);
+        vga.graphics_controller_registers
+            .write_enable_set_reset(PlaneMask::NONE);
         for offset in 0..ALL_PLANES_SCREEN_SIZE {
             unsafe {
                 frame_buffer
@@ -59,7 +60,8 @@ impl Graphics640x480x16 {
         let mut plane_mask = 0x01;
 
         for plane in 0u8..4u8 {
-            vga.set_read_plane(plane.try_into().unwrap());
+            vga.graphics_controller_registers
+                .write_read_plane(plane.try_into().unwrap());
             vga.sequencer_registers
                 .set_plane_mask(plane.try_into().unwrap());
             let current_value = unsafe { frame_buffer.add(offset).read_volatile() };

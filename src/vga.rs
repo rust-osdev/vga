@@ -1,21 +1,18 @@
 //! Provides access to the vga graphics card.
 
 use super::{
-    colors::{Color16Bit, PALETTE_SIZE},
     configurations::{
         VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
         MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
     },
     fonts::VgaFont,
     registers::{
-        AttributeControllerIndex, AttributeControllerRegisters, ColorPaletteRegisters,
-        CrtcControllerIndex, CrtcControllerRegisters, EmulationMode, GeneralRegisters,
-        GraphicsControllerIndex, GraphicsControllerRegisters, PlaneMask, SequencerIndex,
-        SequencerRegisters,
+        AttributeControllerRegisters, ColorPaletteRegisters, CrtcControllerIndex,
+        CrtcControllerRegisters, EmulationMode, GeneralRegisters, GraphicsControllerIndex,
+        GraphicsControllerRegisters, PlaneMask, SequencerIndex, SequencerRegisters,
     },
 };
 use conquer_once::spin::Lazy;
-use core::convert::TryFrom;
 use spinning_top::Spinlock;
 
 /// Provides mutable access to the vga graphics card.
@@ -48,41 +45,6 @@ impl From<u8> for FrameBuffer {
 impl From<FrameBuffer> for u32 {
     fn from(value: FrameBuffer) -> u32 {
         value as u32
-    }
-}
-
-/// Represents a plane for the `GraphicsControllerIndex::ReadPlaneSelect` register.
-#[allow(dead_code)]
-#[derive(Debug, Copy, Clone)]
-#[repr(u8)]
-pub enum ReadPlane {
-    /// Represents `Plane 0 (0x0)`.
-    Plane0 = 0x0,
-    /// Represents `Plane 1 (0x1)`.
-    Plane1 = 0x1,
-    /// Represents `Plane 2 (0x2)`.
-    Plane2 = 0x2,
-    /// Represents `Plane 3 (0x3)`.
-    Plane3 = 0x3,
-}
-
-impl TryFrom<u8> for ReadPlane {
-    type Error = &'static str;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(ReadPlane::Plane0),
-            1 => Ok(ReadPlane::Plane1),
-            2 => Ok(ReadPlane::Plane2),
-            3 => Ok(ReadPlane::Plane3),
-            _ => Err("ReadPlane only accepts values between 0-3!"),
-        }
-    }
-}
-
-impl From<ReadPlane> for u8 {
-    fn from(value: ReadPlane) -> u8 {
-        value as u8
     }
 }
 
@@ -243,39 +205,6 @@ impl Vga {
             self.graphics_controller_registers
                 .read(GraphicsControllerIndex::Miscellaneous),
         )
-    }
-
-    /// Sets the read plane of the graphics controller, as specified by `read_plane`.
-    pub fn set_read_plane(&mut self, read_plane: ReadPlane) {
-        let read_plane = u8::from(read_plane) & 0x3;
-        self.graphics_controller_registers
-            .write(GraphicsControllerIndex::ReadPlaneSelect, read_plane);
-    }
-
-    /// Sets the value to use for `GraphicsControllerIndex::SetReset`,
-    /// as spcified by `color`.
-    pub fn set_graphics_set_reset(&mut self, color: Color16Bit) {
-        let original_value = self
-            .graphics_controller_registers
-            .read(GraphicsControllerIndex::SetReset)
-            & 0xF0;
-        self.graphics_controller_registers.write(
-            GraphicsControllerIndex::SetReset,
-            original_value | u8::from(color),
-        );
-    }
-
-    /// Sets which planes are effected by `GraphicsControllerIndex::SetReset`,
-    /// as specified by `plane_mask`.
-    pub fn set_graphics_enable_set_reset(&mut self, plane_mask: PlaneMask) {
-        let original_value = self
-            .graphics_controller_registers
-            .read(GraphicsControllerIndex::EnableSetReset)
-            & 0xF0;
-        self.graphics_controller_registers.write(
-            GraphicsControllerIndex::EnableSetReset,
-            original_value | u8::from(plane_mask),
-        );
     }
 
     fn set_registers(&mut self, configuration: &VgaConfiguration) {

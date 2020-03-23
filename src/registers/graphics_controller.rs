@@ -1,5 +1,41 @@
-use super::{GRX_DATA_ADDRESS, GRX_INDEX_ADDRESS};
+use super::{Color16Bit, PlaneMask, GRX_DATA_ADDRESS, GRX_INDEX_ADDRESS};
+use core::convert::TryFrom;
 use x86_64::instructions::port::Port;
+
+/// Represents a plane for the `GraphicsControllerIndex::ReadPlaneSelect` register.
+#[allow(dead_code)]
+#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
+pub enum ReadPlane {
+    /// Represents `Plane 0 (0x0)`.
+    Plane0 = 0x0,
+    /// Represents `Plane 1 (0x1)`.
+    Plane1 = 0x1,
+    /// Represents `Plane 2 (0x2)`.
+    Plane2 = 0x2,
+    /// Represents `Plane 3 (0x3)`.
+    Plane3 = 0x3,
+}
+
+impl TryFrom<u8> for ReadPlane {
+    type Error = &'static str;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(ReadPlane::Plane0),
+            1 => Ok(ReadPlane::Plane1),
+            2 => Ok(ReadPlane::Plane2),
+            3 => Ok(ReadPlane::Plane3),
+            _ => Err("ReadPlane only accepts values between 0-3!"),
+        }
+    }
+}
+
+impl From<ReadPlane> for u8 {
+    fn from(value: ReadPlane) -> u8 {
+        value as u8
+    }
+}
 
 /// Represents an index for the graphics controller registers.
 #[derive(Debug, Copy, Clone)]
@@ -66,6 +102,32 @@ impl GraphicsControllerRegisters {
         unsafe {
             self.grx_data.write(value);
         }
+    }
+
+    /// Sets the read plane of the graphics controller, as specified by `read_plane`.
+    pub fn write_read_plane(&mut self, read_plane: ReadPlane) {
+        let read_plane = u8::from(read_plane) & 0x3;
+        self.write(GraphicsControllerIndex::ReadPlaneSelect, read_plane);
+    }
+
+    /// Sets the value to use for `GraphicsControllerIndex::SetReset`,
+    /// as spcified by `color`.
+    pub fn write_set_reset(&mut self, color: Color16Bit) {
+        let original_value = self.read(GraphicsControllerIndex::SetReset) & 0xF0;
+        self.write(
+            GraphicsControllerIndex::SetReset,
+            original_value | u8::from(color),
+        );
+    }
+
+    /// Sets which planes are effected by `GraphicsControllerIndex::SetReset`,
+    /// as specified by `plane_mask`.
+    pub fn write_enable_set_reset(&mut self, plane_mask: PlaneMask) {
+        let original_value = self.read(GraphicsControllerIndex::EnableSetReset) & 0xF0;
+        self.write(
+            GraphicsControllerIndex::EnableSetReset,
+            original_value | u8::from(plane_mask),
+        );
     }
 
     fn set_index(&mut self, index: GraphicsControllerIndex) {
