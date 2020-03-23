@@ -73,12 +73,54 @@ impl From<GraphicsControllerIndex> for u8 {
     }
 }
 
+/// Represents a write mode for vga hardware.
 #[derive(Debug)]
 #[repr(u8)]
 pub enum WriteMode {
+    /// Represents `WriteMode` 0.
+    ///
+    /// During a CPU write to the frame buffer, the
+    /// addressed byte in each of the 4 memory planes is written with the
+    /// CPU write data after it has been rotated by the number of counts
+    /// specified in the `GraphicsControllerIndex::DataRotate` register. If, however, the bit(s)
+    /// in the `GraphicsControllerIndex::EnableSetReset` register corresponding to one or
+    /// more of the memory planes is set to 1, then those memory planes
+    /// will be written to with the data stored in the corresponding bits in
+    /// the `GraphicsControllerIndex::SetReset` register.
     Mode0 = 0x0,
+    /// Represents `WriteMode` 1.
+    ///
+    /// During a CPU write to the frame buffer, the
+    /// addressed byte in each of the 4 memory planes is written to with
+    /// the data stored in the memory read latches. (The memory read
+    /// latches stores an unaltered copy of the data last read from any
+    /// location in the frame buffer.)
     Mode1 = 0x1,
+    /// Represents `WriteMode` 2.
+    ///
+    /// During a CPU write to the frame buffer, the least
+    /// significant 4 data bits of the CPU write data is treated as the color
+    /// value for the pixels in the addressed byte in all 4 memory planes.
+    /// The 8 bits of the `GraphicsControllerIndex::BitMask` register are used to selectively
+    /// enable or disable the ability to write to the corresponding bit in
+    /// each of the 4 memory planes that correspond to a given pixel. A
+    /// setting of 0 in a bit in the Bit Mask Register at a given bit position
+    /// causes the bits in the corresponding bit positions in the addressed
+    /// byte in all 4 memory planes to be written with value of their
+    /// counterparts in the memory read latches. A setting of 1 in a Bit
+    /// Mask Register at a given bit position causes the bits in the
+    /// corresponding bit positions in the addressed byte in all 4 memory
+    /// planes to be written with the 4 bits taken from the CPU write data
+    /// to thereby cause the pixel corresponding to these bits to be set to
+    /// the color value.
     Mode2 = 0x2,
+    /// Represents `WriteMode` 3.
+    ///
+    /// During a CPU write to the frame buffer, the CPU
+    /// write data is logically ANDed with the contents of the `GraphicsControllerIndex::BitMask`
+    /// register. The result of this ANDing is treated as the bit
+    /// mask used in writing the contents of the `GraphicsControllerIndex::SetReset` register
+    /// are written to addressed byte in all 4 memory planes.
     Mode3 = 0x3,
 }
 
@@ -145,6 +187,7 @@ impl GraphicsControllerRegisters {
         );
     }
 
+    /// Sets which mode the vga writes in, as specified by `write_mode`.
     pub fn set_write_mode(&mut self, write_mode: WriteMode) {
         let original_value = self.read(GraphicsControllerIndex::GraphicsMode) & 0xFC;
         self.write(
@@ -153,6 +196,8 @@ impl GraphicsControllerRegisters {
         );
     }
 
+    /// Sets which bits are effected by certain operations, as specified
+    /// by `bit_mask`.
     pub fn set_bit_mask(&mut self, bit_mask: u8) {
         self.write(GraphicsControllerIndex::BitMask, bit_mask);
     }
