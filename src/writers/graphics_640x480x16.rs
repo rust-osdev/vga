@@ -8,6 +8,7 @@ use spinning_top::SpinlockGuard;
 const WIDTH: usize = 640;
 const HEIGHT: usize = 480;
 const ALL_PLANES_SCREEN_SIZE: usize = (WIDTH * HEIGHT) / 8;
+const WIDTH_IN_BYTES: usize = WIDTH / 8;
 
 /// A basic interface for interacting with vga graphics mode 640x480x16
 ///
@@ -53,7 +54,7 @@ impl Graphics640x480x16 {
     /// Sets the given pixel at `(x, y)` to the given `color`.
     pub fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
-        let offset = x / 8 + (WIDTH / 8) * y;
+        let offset = x / 8 + y * WIDTH_IN_BYTES;
         // Which pixel to modify this write
         let pixel_offset = x & 7;
         // Set write mode 2 so screen data is only modified by the bitmask
