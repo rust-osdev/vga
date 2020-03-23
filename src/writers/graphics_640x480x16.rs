@@ -7,7 +7,7 @@ use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 480;
-const ALL_PLANES_SCREEN_SIZE: usize = (WIDTH * HEIGHT) / 4;
+const ALL_PLANES_SCREEN_SIZE: usize = (WIDTH * HEIGHT) / 8;
 
 /// A basic interface for interacting with vga graphics mode 640x480x16
 ///
@@ -32,14 +32,17 @@ impl Graphics640x480x16 {
         Graphics640x480x16 {}
     }
 
-    /// Clears the screen by setting all pixels to `Color16Bit::Black`.
+    /// Clears the screen by setting all pixels to the specified `color`.
     pub fn clear_screen(&self, color: Color16Bit) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
-        vga.sequencer_registers
-            .set_plane_mask(PlaneMask::ALL_PLANES);
-        vga.graphics_controller_registers.set_bit_mask(0xFF);
+        // Set write mode 2 so data is modified by the bitmask
         vga.graphics_controller_registers
             .set_write_mode(WriteMode::Mode2);
+        // Write to all 4 planes at once
+        vga.sequencer_registers
+            .set_plane_mask(PlaneMask::ALL_PLANES);
+        // Every bit should be set to the same color
+        vga.graphics_controller_registers.set_bit_mask(0xFF);
         for offset in 0..ALL_PLANES_SCREEN_SIZE {
             unsafe {
                 frame_buffer.add(offset).write_volatile(u8::from(color));
@@ -51,13 +54,22 @@ impl Graphics640x480x16 {
     pub fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         let offset = x / 8 + (WIDTH / 8) * y;
+        // Which pixel to modify this write
         let pixel_offset = x & 7;
+        // Set write mode 2 so screen data is only modified by the bitmask
         vga.graphics_controller_registers
             .set_write_mode(WriteMode::Mode2);
+        // Write to all 4 planes at once
+        vga.sequencer_registers
+            .set_plane_mask(PlaneMask::ALL_PLANES);
+        // Only modify 1 pixel, based on the offset
         vga.graphics_controller_registers
             .set_bit_mask(1 << pixel_offset);
         unsafe {
+            // Reads the current offset into the memory latches
             frame_buffer.add(offset).read_volatile();
+            // Sets the pixel specified by the offset to the color. The
+            // pixels not inlcuded in the bit mask remain untouched.
             frame_buffer.add(offset).write_volatile(u8::from(color));
         }
     }
