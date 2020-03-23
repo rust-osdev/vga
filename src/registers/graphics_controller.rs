@@ -1,4 +1,4 @@
-use super::{Color16Bit, PlaneMask, GRX_DATA_ADDRESS, GRX_INDEX_ADDRESS};
+use super::{Color16Bit, GRX_DATA_ADDRESS, GRX_INDEX_ADDRESS};
 use core::convert::TryFrom;
 use x86_64::instructions::port::Port;
 
@@ -177,13 +177,13 @@ impl GraphicsControllerRegisters {
         );
     }
 
-    /// Sets which planes are effected by `GraphicsControllerIndex::SetReset`,
-    /// as specified by `plane_mask`.
-    pub fn write_enable_set_reset(&mut self, plane_mask: PlaneMask) {
+    /// Sets which bits are effected by `GraphicsControllerIndex::SetReset`,
+    /// as specified by `bit_mask`.
+    pub fn write_enable_set_reset(&mut self, bit_mask: u8) {
         let original_value = self.read(GraphicsControllerIndex::EnableSetReset) & 0xF0;
         self.write(
             GraphicsControllerIndex::EnableSetReset,
-            original_value | u8::from(plane_mask),
+            original_value | bit_mask,
         );
     }
 

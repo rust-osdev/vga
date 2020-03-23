@@ -1,5 +1,6 @@
 use crate::{
     colors::{Color16Bit, DEFAULT_PALETTE},
+    drawing::{Bresenham, Point},
     registers::{PlaneMask, WriteMode},
     vga::{Vga, VideoMode, VGA},
 };
@@ -17,12 +18,13 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 /// Basic usage:
 ///
 /// ```no_run
+/// use vga::colors::Color16Bit;
 /// use vga::writers::Graphics640x480x16;
 ///
 /// let graphics_mode = Graphics640x480x16::new();
 ///
 /// graphics_mode.set_mode();
-/// graphics_mode.clear_screen();
+/// graphics_mode.clear_screen(Color16Bit::Black);
 /// ```
 #[derive(Default)]
 pub struct Graphics640x480x16;
@@ -36,18 +38,31 @@ impl Graphics640x480x16 {
     /// Clears the screen by setting all pixels to the specified `color`.
     pub fn clear_screen(&self, color: Color16Bit) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
-        // Set write mode 2 so data is modified by the bitmask
         vga.graphics_controller_registers
             .set_write_mode(WriteMode::Mode2);
-        // Write to all 4 planes at once
+        vga.graphics_controller_registers.set_bit_mask(0xFF);
         vga.sequencer_registers
             .set_plane_mask(PlaneMask::ALL_PLANES);
-        // Every bit should be set to the same color
-        vga.graphics_controller_registers.set_bit_mask(0xFF);
         for offset in 0..ALL_PLANES_SCREEN_SIZE {
             unsafe {
                 frame_buffer.add(offset).write_volatile(u8::from(color));
             }
+        }
+    }
+
+    /// Draws a line from `start` to `end` with the specified `color`.
+    pub fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16Bit) {
+        {
+            let (mut vga, _frame_buffer) = self.get_frame_buffer();
+            vga.graphics_controller_registers.write_set_reset(color);
+            vga.graphics_controller_registers
+                .write_enable_set_reset(0xF);
+            vga.graphics_controller_registers
+                .set_write_mode(WriteMode::Mode0);
+        }
+
+        for (x, y) in Bresenham::new(start, end) {
+            self.set_pixel_with_set_reset(x as usize, y as usize);
         }
     }
 
@@ -56,22 +71,33 @@ impl Graphics640x480x16 {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         let offset = x / 8 + y * WIDTH_IN_BYTES;
         // Which pixel to modify this write
-        let pixel_offset = x & 7;
-        // Set write mode 2 so screen data is only modified by the bitmask
+        let pixel_mask = 0x80 >> (x & 0x07);
         vga.graphics_controller_registers
             .set_write_mode(WriteMode::Mode2);
-        // Write to all 4 planes at once
-        vga.sequencer_registers
-            .set_plane_mask(PlaneMask::ALL_PLANES);
         // Only modify 1 pixel, based on the offset
-        vga.graphics_controller_registers
-            .set_bit_mask(1 << pixel_offset);
+        vga.graphics_controller_registers.set_bit_mask(pixel_mask);
         unsafe {
             // Reads the current offset into the memory latches
             frame_buffer.add(offset).read_volatile();
             // Sets the pixel specified by the offset to the color. The
             // pixels not inlcuded in the bit mask remain untouched.
             frame_buffer.add(offset).write_volatile(u8::from(color));
+        }
+    }
+
+    fn set_pixel_with_set_reset(&self, x: usize, y: usize) {
+        let (mut vga, frame_buffer) = self.get_frame_buffer();
+        let offset = x / 8 + y * WIDTH_IN_BYTES;
+        // Which pixel to modify this write
+        let pixel_mask = 0x80 >> (x & 0x07);
+        // Only modify 1 pixel, based on the offset
+        vga.graphics_controller_registers.set_bit_mask(pixel_mask);
+        unsafe {
+            // Reads the current offset into the memory latches
+            frame_buffer.add(offset).read_volatile();
+            // Sets the pixel specified by the offset to the color. The
+            // pixels not inlcuded in the bit mask remain untouched.
+            frame_buffer.add(offset).write_volatile(0x00);
         }
     }
 
