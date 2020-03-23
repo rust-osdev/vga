@@ -52,52 +52,40 @@ impl Graphics640x480x16 {
 
     /// Draws a line from `start` to `end` with the specified `color`.
     pub fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16Bit) {
-        {
-            let (mut vga, _frame_buffer) = self.get_frame_buffer();
-            vga.graphics_controller_registers.write_set_reset(color);
-            vga.graphics_controller_registers
-                .write_enable_set_reset(0xF);
-            vga.graphics_controller_registers
-                .set_write_mode(WriteMode::Mode0);
-        }
+        let (mut vga, frame_buffer) = self.get_frame_buffer();
+        vga.graphics_controller_registers.write_set_reset(color);
+        vga.graphics_controller_registers
+            .write_enable_set_reset(0xF);
+        vga.graphics_controller_registers
+            .set_write_mode(WriteMode::Mode0);
 
         for (x, y) in Bresenham::new(start, end) {
-            self.set_pixel_with_set_reset(x as usize, y as usize);
+            let offset = (x as usize / 8) + (y as usize * WIDTH_IN_BYTES);
+            let pixel_mask = 0x80 >> (x & 0x07);
+            vga.graphics_controller_registers.set_bit_mask(pixel_mask);
+            unsafe {
+                frame_buffer.add(offset).read_volatile();
+                frame_buffer.add(offset).write_volatile(0x00);
+            }
         }
     }
 
     /// Sets the given pixel at `(x, y)` to the given `color`.
+    ///
+    /// **Note:** This method is provided for convenience, but has terrible
+    /// performance since it needs to ensure the correct `WriteMode` per pixel
+    /// drawn. If you need to draw more then one pixel, consider using a method
+    /// such as `draw_line`.
     pub fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         let offset = x / 8 + y * WIDTH_IN_BYTES;
-        // Which pixel to modify this write
         let pixel_mask = 0x80 >> (x & 0x07);
         vga.graphics_controller_registers
             .set_write_mode(WriteMode::Mode2);
-        // Only modify 1 pixel, based on the offset
         vga.graphics_controller_registers.set_bit_mask(pixel_mask);
         unsafe {
-            // Reads the current offset into the memory latches
             frame_buffer.add(offset).read_volatile();
-            // Sets the pixel specified by the offset to the color. The
-            // pixels not inlcuded in the bit mask remain untouched.
             frame_buffer.add(offset).write_volatile(u8::from(color));
-        }
-    }
-
-    fn set_pixel_with_set_reset(&self, x: usize, y: usize) {
-        let (mut vga, frame_buffer) = self.get_frame_buffer();
-        let offset = x / 8 + y * WIDTH_IN_BYTES;
-        // Which pixel to modify this write
-        let pixel_mask = 0x80 >> (x & 0x07);
-        // Only modify 1 pixel, based on the offset
-        vga.graphics_controller_registers.set_bit_mask(pixel_mask);
-        unsafe {
-            // Reads the current offset into the memory latches
-            frame_buffer.add(offset).read_volatile();
-            // Sets the pixel specified by the offset to the color. The
-            // pixels not inlcuded in the bit mask remain untouched.
-            frame_buffer.add(offset).write_volatile(0x00);
         }
     }
 
