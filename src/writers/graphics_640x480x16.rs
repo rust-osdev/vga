@@ -52,21 +52,17 @@ impl Graphics640x480x16 {
 
     /// Draws a line from `start` to `end` with the specified `color`.
     pub fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16Bit) {
-        let (mut vga, frame_buffer) = self.get_frame_buffer();
-        vga.graphics_controller_registers.write_set_reset(color);
-        vga.graphics_controller_registers
-            .write_enable_set_reset(0xF);
-        vga.graphics_controller_registers
-            .set_write_mode(WriteMode::Mode0);
+        {
+            let (mut vga, _frame_buffer) = self.get_frame_buffer();
+            vga.graphics_controller_registers.write_set_reset(color);
+            vga.graphics_controller_registers
+                .write_enable_set_reset(0xF);
+            vga.graphics_controller_registers
+                .set_write_mode(WriteMode::Mode0);
+        }
 
         for (x, y) in Bresenham::new(start, end) {
-            let offset = (x as usize / 8) + (y as usize * WIDTH_IN_BYTES);
-            let pixel_mask = 0x80 >> (x & 0x07);
-            vga.graphics_controller_registers.set_bit_mask(pixel_mask);
-            unsafe {
-                frame_buffer.add(offset).read_volatile();
-                frame_buffer.add(offset).write_volatile(0x00);
-            }
+            self._set_pixel(x as usize, y as usize, color);
         }
     }
 
@@ -77,16 +73,13 @@ impl Graphics640x480x16 {
     /// drawn. If you need to draw more then one pixel, consider using a method
     /// such as `draw_line`.
     pub fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
-        let (mut vga, frame_buffer) = self.get_frame_buffer();
-        let offset = x / 8 + y * WIDTH_IN_BYTES;
-        let pixel_mask = 0x80 >> (x & 0x07);
-        vga.graphics_controller_registers
-            .set_write_mode(WriteMode::Mode2);
-        vga.graphics_controller_registers.set_bit_mask(pixel_mask);
-        unsafe {
-            frame_buffer.add(offset).read_volatile();
-            frame_buffer.add(offset).write_volatile(u8::from(color));
+        {
+            let (mut vga, _frame_buffer) = self.get_frame_buffer();
+            vga.graphics_controller_registers
+                .set_write_mode(WriteMode::Mode2);
         }
+
+        self._set_pixel(x, y, color);
     }
 
     /// Sets the graphics device to `VideoMode::Mode640x480x16`.
@@ -106,5 +99,17 @@ impl Graphics640x480x16 {
         let mut vga = VGA.lock();
         let frame_buffer = vga.get_frame_buffer();
         (vga, u32::from(frame_buffer) as *mut u8)
+    }
+
+    #[inline]
+    fn _set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
+        let (mut vga, frame_buffer) = self.get_frame_buffer();
+        let offset = x / 8 + y * WIDTH_IN_BYTES;
+        let pixel_mask = 0x80 >> (x & 0x07);
+        vga.graphics_controller_registers.set_bit_mask(pixel_mask);
+        unsafe {
+            frame_buffer.add(offset).read_volatile();
+            frame_buffer.add(offset).write_volatile(u8::from(color));
+        }
     }
 }
