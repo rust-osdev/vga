@@ -21,12 +21,19 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 ///
 /// ```no_run
 /// use vga::colors::Color16;
-/// use vga::writers::{GraphicsWriter, Graphics640x480x16};
-///
-/// let graphics_mode = Graphics640x480x16::new();
-///
-/// graphics_mode.set_mode();
-/// graphics_mode.clear_screen(Color16::Black);
+/// use vga::writers::{Graphics640x480x16, GraphicsWriter};
+
+/// let mode = Graphics640x480x16::new();
+/// mode.set_mode();
+/// mode.clear_screen(Color16::Black);
+/// mode.draw_line((80, 60), (80, 420), Color16::White);
+/// mode.draw_line((80, 60), (540, 60), Color16::White);
+/// mode.draw_line((80, 420), (540, 420), Color16::White);
+/// mode.draw_line((540, 420), (540, 60), Color16::White);
+/// mode.draw_line((80, 90), (540, 90), Color16::White);
+/// for (offset, character) in "Hello World!".chars().enumerate() {
+///     mode.draw_character(270 + offset * 8, 72, character, Color16::White)
+/// }
 /// ```
 #[derive(Default)]
 pub struct Graphics640x480x16;
@@ -88,10 +95,7 @@ impl Graphics640x480x16 {
         Graphics640x480x16 {}
     }
 
-    /// Sets the vga to 'WriteMode::Mode0`. This also sets `GraphicsControllerIndex::SetReset`
-    /// to the specified `color`, `GraphicsControllerIndex::EnableSetReset` to `0xFF` and
-    /// `SequencerIndex::PlaneMask` to `PlaneMask::ALL_PLANES`.
-    pub fn set_write_mode_0(&self, color: Color16) {
+    fn set_write_mode_0(&self, color: Color16) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         vga.graphics_controller_registers.write_set_reset(color);
         vga.graphics_controller_registers
@@ -100,9 +104,7 @@ impl Graphics640x480x16 {
             .set_write_mode(WriteMode::Mode0);
     }
 
-    /// Sets the vga to `WriteMode::Mode2`. This also sets the `GraphicsControllerIndex::BitMask`
-    /// to `0xFF` and `SequencerIndex::PlaneMask` to `PlaneMask::ALL_PLANES`.
-    pub fn set_write_mode_2(&self) {
+    fn set_write_mode_2(&self) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         vga.graphics_controller_registers
             .set_write_mode(WriteMode::Mode2);
