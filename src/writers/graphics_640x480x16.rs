@@ -1,3 +1,4 @@
+use super::GraphicsWriter;
 use crate::{
     colors::{Color16Bit, DEFAULT_PALETTE},
     drawing::{Bresenham, Point},
@@ -19,7 +20,7 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 ///
 /// ```no_run
 /// use vga::colors::Color16Bit;
-/// use vga::writers::Graphics640x480x16;
+/// use vga::writers::{GraphicsWriter, Graphics640x480x16};
 ///
 /// let graphics_mode = Graphics640x480x16::new();
 ///
@@ -29,14 +30,9 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 #[derive(Default)]
 pub struct Graphics640x480x16;
 
-impl Graphics640x480x16 {
-    /// Creates a new `Graphics640x480x16`.
-    pub fn new() -> Graphics640x480x16 {
-        Graphics640x480x16 {}
-    }
-
+impl GraphicsWriter<Color16Bit> for Graphics640x480x16 {
     /// Clears the screen by setting all pixels to the specified `color`.
-    pub fn clear_screen(&self, color: Color16Bit) {
+    fn clear_screen(&self, color: Color16Bit) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         vga.graphics_controller_registers
             .set_write_mode(WriteMode::Mode2);
@@ -51,7 +47,7 @@ impl Graphics640x480x16 {
     }
 
     /// Draws a line from `start` to `end` with the specified `color`.
-    pub fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16Bit) {
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16Bit) {
         {
             let (mut vga, _frame_buffer) = self.get_frame_buffer();
             vga.graphics_controller_registers.write_set_reset(color);
@@ -72,7 +68,7 @@ impl Graphics640x480x16 {
     /// performance since it needs to ensure the correct `WriteMode` per pixel
     /// drawn. If you need to draw more then one pixel, consider using a method
     /// such as `draw_line`.
-    pub fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
+    fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
         {
             let (mut vga, _frame_buffer) = self.get_frame_buffer();
             vga.graphics_controller_registers
@@ -83,13 +79,20 @@ impl Graphics640x480x16 {
     }
 
     /// Sets the graphics device to `VideoMode::Mode640x480x16`.
-    pub fn set_mode(&self) {
+    fn set_mode(&self) {
         let mut vga = VGA.lock();
         vga.set_video_mode(VideoMode::Mode640x480x16);
 
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
         vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
+    }
+}
+
+impl Graphics640x480x16 {
+    /// Creates a new `Graphics640x480x16`.
+    pub fn new() -> Graphics640x480x16 {
+        Graphics640x480x16 {}
     }
 
     /// Returns the start of the `FrameBuffer` as `*mut u8` as

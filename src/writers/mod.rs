@@ -6,6 +6,7 @@ mod text_80x25;
 
 use super::{
     colors::{Color16Bit, TextModeColor},
+    drawing::Point,
     registers::CrtcControllerIndex,
     vga::{Vga, VGA},
 };
@@ -176,4 +177,21 @@ pub trait TextWriter: Screen {
             frame_buffer.add(offset).write_volatile(screen_character);
         }
     }
+}
+
+/// A helper trait used to interact with various vga graphics modes.
+pub trait GraphicsWriter<Color> {
+    /// Clears the screen by setting all pixels to the specified `color`.
+    fn clear_screen(&self, color: Color);
+    /// /// Draws a line from `start` to `end` with the specified `color`.
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color);
+    /// Sets the given pixel at `(x, y)` to the given `color`.
+    ///
+    /// **Note:** This method is provided for convenience, but has terrible
+    /// performance since it needs to ensure the correct `WriteMode` per pixel
+    /// drawn. If you need to draw more then one pixel, consider using a method
+    /// such as `draw_line`.
+    fn set_pixel(&self, x: usize, y: usize, color: Color);
+    /// Sets the graphics device to a `VideoMode`.
+    fn set_mode(&self);
 }
