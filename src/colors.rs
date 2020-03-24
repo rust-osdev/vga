@@ -6,7 +6,7 @@ pub const PALETTE_SIZE: usize = 768;
 /// Represents a 16 bit color used for vga display.
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
-pub enum Color16Bit {
+pub enum Color16 {
     /// Represents the color `Black (0x0)`.
     Black = 0x0,
     /// Represents the color `Blue (0x1)`.
@@ -41,8 +41,8 @@ pub enum Color16Bit {
     White = 0xF,
 }
 
-impl From<Color16Bit> for u8 {
-    fn from(value: Color16Bit) -> u8 {
+impl From<Color16> for u8 {
+    fn from(value: Color16) -> u8 {
         value as u8
     }
 }
@@ -55,17 +55,17 @@ pub struct TextModeColor(u8);
 impl TextModeColor {
     /// Returns a new `TextModeColor` given the specified `foreground`
     /// and `background` color.
-    pub const fn new(foreground: Color16Bit, background: Color16Bit) -> TextModeColor {
+    pub const fn new(foreground: Color16, background: Color16) -> TextModeColor {
         TextModeColor((background as u8) << 4 | (foreground as u8))
     }
 
     /// Sets the background color given the specified `background`;
-    pub fn set_background(&mut self, background: Color16Bit) {
+    pub fn set_background(&mut self, background: Color16) {
         self.0 = (background as u8) << 4 | (self.0 & 0x0F);
     }
 
     /// Sets the foreground color given the specified `foreground`.
-    pub fn set_foreground(&mut self, foreground: Color16Bit) {
+    pub fn set_foreground(&mut self, foreground: Color16) {
         self.0 = foreground as u8;
     }
 }
@@ -128,15 +128,15 @@ mod test {
 
     #[test]
     fn test_set_foreground() {
-        let mut color = TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black);
-        color.set_foreground(Color16Bit::Red);
-        assert_eq!(color.0 & 0x0F, Color16Bit::Red as u8);
+        let mut color = TextModeColor::new(Color16::Yellow, Color16::Black);
+        color.set_foreground(Color16::Red);
+        assert_eq!(color.0 & 0x0F, Color16::Red as u8);
     }
 
     #[test]
     fn test_set_background() {
-        let mut color = TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black);
-        color.set_background(Color16Bit::DarkGrey);
-        assert_eq!(color.0 >> 4, Color16Bit::DarkGrey as u8);
+        let mut color = TextModeColor::new(Color16::Yellow, Color16::Black);
+        color.set_background(Color16::DarkGrey);
+        assert_eq!(color.0 >> 4, Color16::DarkGrey as u8);
     }
 }

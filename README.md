@@ -11,11 +11,11 @@ this crate to work properly.
 
 ## Usage
 ```rust
-use vga::colors::{Color16Bit, TextModeColor};
+use vga::colors::{Color16, TextModeColor};
 use vga::writers::{ScreenCharacter, TextWriter, Text80x25};
 
 let text_mode = Text80x25::new();
-let color = TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black);
+let color = TextModeColor::new(Color16::Yellow, Color16::Black);
 let screen_character = ScreenCharacter::new(b'T', color);
 
 text_mode.set_mode();

@@ -1,4 +1,4 @@
-use super::{Color16Bit, GRX_DATA_ADDRESS, GRX_INDEX_ADDRESS};
+use super::{Color16, GRX_DATA_ADDRESS, GRX_INDEX_ADDRESS};
 use core::convert::TryFrom;
 use x86_64::instructions::port::Port;
 
@@ -169,7 +169,7 @@ impl GraphicsControllerRegisters {
 
     /// Sets the value to use for `GraphicsControllerIndex::SetReset`,
     /// as spcified by `color`.
-    pub fn write_set_reset(&mut self, color: Color16Bit) {
+    pub fn write_set_reset(&mut self, color: Color16) {
         let original_value = self.read(GraphicsControllerIndex::SetReset) & 0xF0;
         self.write(
             GraphicsControllerIndex::SetReset,

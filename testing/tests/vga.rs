@@ -83,8 +83,8 @@ fn load_palette() {
 
     let mut palette = [0u8; PALETTE_SIZE];
     let mut vga = VGA.lock();
-    vga.load_palette(&DEFAULT_PALETTE);
-    vga.read_palette(&mut palette);
+    vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
+    vga.color_palette_registers.read_palette(&mut palette);
 
     for i in 0..PALETTE_SIZE {
         assert_eq!(palette[i], DEFAULT_PALETTE[i]);
@@ -95,23 +95,30 @@ fn load_palette() {
 
 fn check_registers(vga: &mut Vga, configuration: &VgaConfiguration) {
     let emulation_mode = vga.get_emulation_mode();
-    assert_eq!(vga.read_msr(), configuration.miscellaneous_output);
+    assert_eq!(
+        vga.general_registers.read_msr(),
+        configuration.miscellaneous_output
+    );
 
     for (index, value) in configuration.sequencer_registers {
-        assert_eq!(vga.read_sequencer(*index), *value);
+        assert_eq!(vga.sequencer_registers.read(*index), *value);
     }
 
     for (index, value) in configuration.crtc_controller_registers {
-        assert_eq!(vga.read_crtc_controller(emulation_mode, *index), *value);
+        assert_eq!(
+            vga.crtc_controller_registers.read(emulation_mode, *index),
+            *value
+        );
     }
 
     for (index, value) in configuration.graphics_controller_registers {
-        assert_eq!(vga.read_graphics_controller(*index), *value);
+        assert_eq!(vga.graphics_controller_registers.read(*index), *value);
     }
 
     for (index, value) in configuration.attribute_controller_registers {
         assert_eq!(
-            vga.read_attribute_controller(emulation_mode, *index),
+            vga.attribute_controller_registers
+                .read(emulation_mode, *index),
             *value
         );
     }

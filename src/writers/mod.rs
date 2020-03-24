@@ -5,7 +5,7 @@ mod text_40x50;
 mod text_80x25;
 
 use super::{
-    colors::{Color16Bit, TextModeColor},
+    colors::{Color16, TextModeColor},
     drawing::Point,
     registers::CrtcControllerIndex,
     vga::{Vga, VGA},
@@ -44,7 +44,7 @@ impl ScreenCharacter {
 
 static BLANK_CHARACTER: ScreenCharacter = ScreenCharacter {
     character: b' ',
-    color: TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black),
+    color: TextModeColor::new(Color16::Yellow, Color16::Black),
 };
 
 /// A helper trait used to interact with various vga screens.
@@ -73,8 +73,8 @@ pub trait TextWriter: Screen {
     }
 
     /// Clears the screen by setting all cells to `b' '` with
-    /// a background color of `Color16Bit::Black` and a foreground
-    /// color of `Color16Bit::Yellow`.
+    /// a background color of `Color16::Black` and a foreground
+    /// color of `Color16::Yellow`.
     fn clear_screen(&self) {
         let (_vga, frame_buffer) = self.get_frame_buffer();
         let screen_size = self.get_width() * self.get_height();

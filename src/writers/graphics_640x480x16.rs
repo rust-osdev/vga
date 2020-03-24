@@ -1,6 +1,6 @@
 use super::GraphicsWriter;
 use crate::{
-    colors::{Color16Bit, DEFAULT_PALETTE},
+    colors::{Color16, DEFAULT_PALETTE},
     drawing::{Bresenham, Point},
     registers::{PlaneMask, WriteMode},
     vga::{Vga, VideoMode, VGA},
@@ -20,19 +20,19 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 /// Basic usage:
 ///
 /// ```no_run
-/// use vga::colors::Color16Bit;
+/// use vga::colors::Color16;
 /// use vga::writers::{GraphicsWriter, Graphics640x480x16};
 ///
 /// let graphics_mode = Graphics640x480x16::new();
 ///
 /// graphics_mode.set_mode();
-/// graphics_mode.clear_screen(Color16Bit::Black);
+/// graphics_mode.clear_screen(Color16::Black);
 /// ```
 #[derive(Default)]
 pub struct Graphics640x480x16;
 
-impl GraphicsWriter<Color16Bit> for Graphics640x480x16 {
-    fn clear_screen(&self, color: Color16Bit) {
+impl GraphicsWriter<Color16> for Graphics640x480x16 {
+    fn clear_screen(&self, color: Color16) {
         self.set_write_mode_2();
         let (_vga, frame_buffer) = self.get_frame_buffer();
         for offset in 0..ALL_PLANES_SCREEN_SIZE {
@@ -42,14 +42,14 @@ impl GraphicsWriter<Color16Bit> for Graphics640x480x16 {
         }
     }
 
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16Bit) {
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16) {
         self.set_write_mode_0(color);
         for (x, y) in Bresenham::new(start, end) {
             self._set_pixel(x as usize, y as usize, color);
         }
     }
 
-    fn draw_character(&self, x: usize, y: usize, character: char, color: Color16Bit) {
+    fn draw_character(&self, x: usize, y: usize, character: char, color: Color16) {
         self.set_write_mode_2();
         let character = match font8x8::BASIC_FONTS.get(character) {
             Some(character) => character,
@@ -67,7 +67,7 @@ impl GraphicsWriter<Color16Bit> for Graphics640x480x16 {
         }
     }
 
-    fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
+    fn set_pixel(&self, x: usize, y: usize, color: Color16) {
         self.set_write_mode_2();
         self._set_pixel(x, y, color);
     }
@@ -91,7 +91,7 @@ impl Graphics640x480x16 {
     /// Sets the vga to 'WriteMode::Mode0`. This also sets `GraphicsControllerIndex::SetReset`
     /// to the specified `color`, `GraphicsControllerIndex::EnableSetReset` to `0xFF` and
     /// `SequencerIndex::PlaneMask` to `PlaneMask::ALL_PLANES`.
-    pub fn set_write_mode_0(&self, color: Color16Bit) {
+    pub fn set_write_mode_0(&self, color: Color16) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         vga.graphics_controller_registers.write_set_reset(color);
         vga.graphics_controller_registers
@@ -121,7 +121,7 @@ impl Graphics640x480x16 {
     }
 
     #[inline]
-    fn _set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
+    fn _set_pixel(&self, x: usize, y: usize, color: Color16) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         let offset = x / 8 + y * WIDTH_IN_BYTES;
         let pixel_mask = 0x80 >> (x & 0x07);

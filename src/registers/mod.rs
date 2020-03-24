@@ -7,7 +7,7 @@ mod general;
 mod graphics_controller;
 mod sequencer;
 
-use crate::colors::{Color16Bit, PALETTE_SIZE};
+use crate::colors::{Color16, PALETTE_SIZE};
 
 pub use attribute_controller::{AttributeControllerIndex, AttributeControllerRegisters};
 pub use color_palette::ColorPaletteRegisters;

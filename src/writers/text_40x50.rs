@@ -15,11 +15,11 @@ const HEIGHT: usize = 50;
 /// Basic usage:
 ///
 /// ```no_run
-/// use vga::colors::{Color16Bit, TextModeColor};
+/// use vga::colors::{Color16, TextModeColor};
 /// use vga::writers::{ScreenCharacter, TextWriter, Text40x50};
 ///
 /// let text_mode = Text40x50::new();
-/// let color = TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black);
+/// let color = TextModeColor::new(Color16::Yellow, Color16::Black);
 /// let screen_character = ScreenCharacter::new(b'T', color);
 ///
 /// text_mode.set_mode();
