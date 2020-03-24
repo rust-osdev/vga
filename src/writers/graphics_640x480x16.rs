@@ -32,14 +32,9 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 pub struct Graphics640x480x16;
 
 impl GraphicsWriter<Color16Bit> for Graphics640x480x16 {
-    /// Clears the screen by setting all pixels to the specified `color`.
     fn clear_screen(&self, color: Color16Bit) {
-        let (mut vga, frame_buffer) = self.get_frame_buffer();
-        vga.graphics_controller_registers
-            .set_write_mode(WriteMode::Mode2);
-        vga.graphics_controller_registers.set_bit_mask(0xFF);
-        vga.sequencer_registers
-            .set_plane_mask(PlaneMask::ALL_PLANES);
+        self.set_write_mode_2();
+        let (_vga, frame_buffer) = self.get_frame_buffer();
         for offset in 0..ALL_PLANES_SCREEN_SIZE {
             unsafe {
                 frame_buffer.add(offset).write_volatile(u8::from(color));
@@ -47,64 +42,36 @@ impl GraphicsWriter<Color16Bit> for Graphics640x480x16 {
         }
     }
 
-    /// Draws a line from `start` to `end` with the specified `color`.
     fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16Bit) {
-        {
-            let (mut vga, _frame_buffer) = self.get_frame_buffer();
-            vga.graphics_controller_registers.write_set_reset(color);
-            vga.graphics_controller_registers
-                .write_enable_set_reset(0xF);
-            vga.graphics_controller_registers
-                .set_write_mode(WriteMode::Mode0);
-        }
-
+        self.set_write_mode_0(color);
         for (x, y) in Bresenham::new(start, end) {
             self._set_pixel(x as usize, y as usize, color);
         }
     }
 
     fn draw_character(&self, x: usize, y: usize, character: char, color: Color16Bit) {
+        self.set_write_mode_2();
         let character = match font8x8::BASIC_FONTS.get(character) {
             Some(character) => character,
+            // Default to a filled block if the character isn't found
             None => font8x8::unicode::BLOCK_UNICODE[8].byte_array(),
         };
 
-        {
-            let (mut vga, _frame_buffer) = self.get_frame_buffer();
-            vga.graphics_controller_registers
-                .set_write_mode(WriteMode::Mode2);
-            vga.graphics_controller_registers.set_bit_mask(0xFF);
-            vga.sequencer_registers
-                .set_plane_mask(PlaneMask::ALL_PLANES);
-        }
-
-        for (y1, byte) in character.iter().enumerate() {
+        for (row, byte) in character.iter().enumerate() {
             for bit in 0..8 {
                 match *byte & 1 << bit {
-                    0 => {}
-                    _ => self._set_pixel(x + bit, y + y1, color),
+                    0 => (),
+                    _ => self._set_pixel(x + bit, y + row, color),
                 }
             }
         }
     }
 
-    /// Sets the given pixel at `(x, y)` to the given `color`.
-    ///
-    /// **Note:** This method is provided for convenience, but has terrible
-    /// performance since it needs to ensure the correct `WriteMode` per pixel
-    /// drawn. If you need to draw more then one pixel, consider using a method
-    /// such as `draw_line`.
     fn set_pixel(&self, x: usize, y: usize, color: Color16Bit) {
-        {
-            let (mut vga, _frame_buffer) = self.get_frame_buffer();
-            vga.graphics_controller_registers
-                .set_write_mode(WriteMode::Mode2);
-        }
-
+        self.set_write_mode_2();
         self._set_pixel(x, y, color);
     }
 
-    /// Sets the graphics device to `VideoMode::Mode640x480x16`.
     fn set_mode(&self) {
         let mut vga = VGA.lock();
         vga.set_video_mode(VideoMode::Mode640x480x16);
@@ -119,6 +86,29 @@ impl Graphics640x480x16 {
     /// Creates a new `Graphics640x480x16`.
     pub fn new() -> Graphics640x480x16 {
         Graphics640x480x16 {}
+    }
+
+    /// Sets the vga to 'WriteMode::Mode0`. This also sets `GraphicsControllerIndex::SetReset`
+    /// to the specified `color`, `GraphicsControllerIndex::EnableSetReset` to `0xFF` and
+    /// `SequencerIndex::PlaneMask` to `PlaneMask::ALL_PLANES`.
+    pub fn set_write_mode_0(&self, color: Color16Bit) {
+        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        vga.graphics_controller_registers.write_set_reset(color);
+        vga.graphics_controller_registers
+            .write_enable_set_reset(0xF);
+        vga.graphics_controller_registers
+            .set_write_mode(WriteMode::Mode0);
+    }
+
+    /// Sets the vga to `WriteMode::Mode2`. This also sets the `GraphicsControllerIndex::BitMask`
+    /// to `0xFF` and `SequencerIndex::PlaneMask` to `PlaneMask::ALL_PLANES`.
+    pub fn set_write_mode_2(&self) {
+        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        vga.graphics_controller_registers
+            .set_write_mode(WriteMode::Mode2);
+        vga.graphics_controller_registers.set_bit_mask(0xFF);
+        vga.sequencer_registers
+            .set_plane_mask(PlaneMask::ALL_PLANES);
     }
 
     /// Returns the start of the `FrameBuffer` as `*mut u8` as
