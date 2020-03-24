@@ -2,7 +2,7 @@
 
 ## Breaking
 
-- `ScreenCharacter::new` now takes a `TextModeColor` instead of 2 `Color16Bit`.
+- `ScreenCharacter::new` now takes a `TextModeColor` instead of 2 `Color16`.
 
 ## Other
 - Added `ScreenCharacter::get_character`.

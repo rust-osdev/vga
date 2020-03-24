@@ -1,16 +1,15 @@
 //! Provides access to the vga graphics card.
 
 use super::{
-    colors::PALETTE_SIZE,
     configurations::{
         VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
         MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
     },
     fonts::VgaFont,
     registers::{
-        AttributeControllerIndex, AttributeControllerRegisters, ColorPaletteRegisters,
-        CrtcControllerIndex, CrtcControllerRegisters, EmulationMode, GeneralRegisters,
-        GraphicsControllerIndex, GraphicsControllerRegisters, SequencerIndex, SequencerRegisters,
+        AttributeControllerRegisters, ColorPaletteRegisters, CrtcControllerIndex,
+        CrtcControllerRegisters, EmulationMode, GeneralRegisters, GraphicsControllerIndex,
+        GraphicsControllerRegisters, PlaneMask, SequencerIndex, SequencerRegisters,
     },
 };
 use conquer_once::spin::Lazy;
@@ -49,27 +48,6 @@ impl From<FrameBuffer> for u32 {
     }
 }
 
-/// Represents a plane for reading and writing vga data.
-#[allow(dead_code)]
-#[derive(Debug, Copy, Clone)]
-#[repr(u8)]
-pub enum Plane {
-    /// Represents `Plane 0 (0x0)`.
-    Plane0 = 0x0,
-    /// Represents `Plane 1 (0x1)`.
-    Plane1 = 0x1,
-    /// Represents `Plane 2 (0x2)`.
-    Plane2 = 0x2,
-    /// Represents `Plane 3 (0x3)`.
-    Plane3 = 0x3,
-}
-
-impl From<Plane> for u8 {
-    fn from(value: Plane) -> u8 {
-        value as u8
-    }
-}
-
 /// Represents a specified vga video mode.
 #[derive(Debug, Clone, Copy)]
 pub enum VideoMode {
@@ -86,12 +64,18 @@ pub enum VideoMode {
 /// Represents a vga graphics card with it's common registers,
 /// as well as the most recent video mode.
 pub struct Vga {
-    general_registers: GeneralRegisters,
-    sequencer_registers: SequencerRegisters,
-    graphics_controller_registers: GraphicsControllerRegisters,
-    attribute_controller_registers: AttributeControllerRegisters,
-    crtc_controller_registers: CrtcControllerRegisters,
-    color_palette_registers: ColorPaletteRegisters,
+    /// Represents the general registers on vga hardware.
+    pub general_registers: GeneralRegisters,
+    /// Represents the sequencer registers on vga hardware.
+    pub sequencer_registers: SequencerRegisters,
+    /// Represents the graphics controller registers on vga hardware.
+    pub graphics_controller_registers: GraphicsControllerRegisters,
+    /// Represents the attribute controller registers on vga hardware.
+    pub attribute_controller_registers: AttributeControllerRegisters,
+    /// Represents the crtc controller registers on vga hardware.
+    pub crtc_controller_registers: CrtcControllerRegisters,
+    /// Represents the color palette registers on vga hardware.
+    pub color_palette_registers: ColorPaletteRegisters,
     most_recent_video_mode: Option<VideoMode>,
 }
 
@@ -134,72 +118,9 @@ impl Vga {
         self.most_recent_video_mode
     }
 
-    /// Returns the current value of the miscellaneous output register.
-    pub fn read_msr(&mut self) -> u8 {
-        self.general_registers.read_msr()
-    }
-
-    /// Returns the current value of the sequencer register, as determined by `index`.
-    pub fn read_sequencer(&mut self, index: SequencerIndex) -> u8 {
-        self.sequencer_registers.read(index)
-    }
-
-    /// Returns the current value of the graphics controller register, as determined by `index`.
-    pub fn read_graphics_controller(&mut self, index: GraphicsControllerIndex) -> u8 {
-        self.graphics_controller_registers.read(index)
-    }
-
-    /// Returns the current value of the attribute controller register, as determined by `emulation_mode`
-    /// and `index`.
-    pub fn read_attribute_controller(
-        &mut self,
-        emulation_mode: EmulationMode,
-        index: AttributeControllerIndex,
-    ) -> u8 {
-        self.attribute_controller_registers
-            .read(emulation_mode, index)
-    }
-
-    /// Returns the current value of the crtc controller, as determined by `emulation_mode`
-    /// and `index`.
-    pub fn read_crtc_controller(
-        &mut self,
-        emulation_mode: EmulationMode,
-        index: CrtcControllerIndex,
-    ) -> u8 {
-        self.crtc_controller_registers.read(emulation_mode, index)
-    }
-
-    /// Writes `value` to the crtc controller, as determined by `index`.
-    pub fn write_crtc_controller(
-        &mut self,
-        emulation_mode: EmulationMode,
-        index: CrtcControllerIndex,
-        value: u8,
-    ) {
-        self.crtc_controller_registers
-            .write(emulation_mode, index, value);
-    }
-
     /// Returns the current `EmulationMode` as determined by the miscellaneous output register.
     pub fn get_emulation_mode(&mut self) -> EmulationMode {
         EmulationMode::from(self.general_registers.read_msr() & 0x1)
-    }
-
-    /// Loads a new palette into the vga, as specified by `palette`.
-    ///
-    /// Each palette must be `PALETTE_SIZE` bytes long, with every 3
-    /// bytes representing one color `(R, G, B)`.
-    pub fn load_palette(&mut self, palette: &[u8; PALETTE_SIZE]) {
-        self.color_palette_registers.load_palette(palette);
-    }
-
-    /// Reads the current vga palette into `palette`.
-    ///
-    /// Each palette must be `PALETTE_SIZE` bytes long, with every 3
-    /// bytes representing one color `(R, G, B)`.
-    pub fn read_palette(&mut self, palette: &mut [u8; PALETTE_SIZE]) {
-        self.color_palette_registers.read_palette(palette);
     }
 
     /// Loads a vga text mode font as specified by `vga_font`.
@@ -226,7 +147,7 @@ impl Vga {
         );
 
         // Write font to plane
-        self.set_plane(Plane::Plane2);
+        self.sequencer_registers.set_plane_mask(PlaneMask::PLANE2);
 
         let frame_buffer = u32::from(self.get_frame_buffer()) as *mut u8;
 
@@ -284,18 +205,6 @@ impl Vga {
             self.graphics_controller_registers
                 .read(GraphicsControllerIndex::Miscellaneous),
         )
-    }
-
-    /// Turns on the given `Plane` in the vga graphics card.
-    pub fn set_plane(&mut self, plane: Plane) {
-        let mut plane = u8::from(plane);
-
-        plane &= 0x3;
-
-        self.graphics_controller_registers
-            .write(GraphicsControllerIndex::ReadPlaneSelect, plane);
-        self.sequencer_registers
-            .write(SequencerIndex::PlaneMask, 0x1 << plane);
     }
 
     fn set_registers(&mut self, configuration: &VgaConfiguration) {

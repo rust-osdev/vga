@@ -5,7 +5,8 @@ mod text_40x50;
 mod text_80x25;
 
 use super::{
-    colors::{Color16Bit, TextModeColor},
+    colors::{Color16, TextModeColor},
+    drawing::Point,
     registers::CrtcControllerIndex,
     vga::{Vga, VGA},
 };
@@ -43,17 +44,21 @@ impl ScreenCharacter {
 
 static BLANK_CHARACTER: ScreenCharacter = ScreenCharacter {
     character: b' ',
-    color: TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black),
+    color: TextModeColor::new(Color16::Yellow, Color16::Black),
 };
 
-/// A helper trait used to interact with various vga text modes.
-pub trait TextWriter {
-    /// Returns the width of the `TextWriter`.
+/// A helper trait used to interact with various vga screens.
+pub trait Screen {
+    /// Returns the width of the `Screen`.
     fn get_width(&self) -> usize;
-
-    /// Returns the height of the `TextWriter`.
+    /// Returns the height of the `Screen`.
     fn get_height(&self) -> usize;
+    /// Returns the size of the `Screen`.
+    fn get_size(&self) -> usize;
+}
 
+/// A helper trait used to interact with various vga text modes.
+pub trait TextWriter: Screen {
     /// Sets the graphics device to a video mode as determined by
     /// the `TextWriter` implementation.
     fn set_mode(&self);
@@ -68,8 +73,8 @@ pub trait TextWriter {
     }
 
     /// Clears the screen by setting all cells to `b' '` with
-    /// a background color of `Color16Bit::Black` and a foreground
-    /// color of `Color16Bit::Yellow`.
+    /// a background color of `Color16::Black` and a foreground
+    /// color of `Color16::Yellow`.
     fn clear_screen(&self) {
         let (_vga, frame_buffer) = self.get_frame_buffer();
         let screen_size = self.get_width() * self.get_height();
@@ -84,9 +89,10 @@ pub trait TextWriter {
     fn disable_cursor(&self) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         let emulation_mode = vga.get_emulation_mode();
-        let cursor_start =
-            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorStart);
-        vga.write_crtc_controller(
+        let cursor_start = vga
+            .crtc_controller_registers
+            .read(emulation_mode, CrtcControllerIndex::TextCursorStart);
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorStart,
             cursor_start | 0x20,
@@ -97,9 +103,10 @@ pub trait TextWriter {
     fn enable_cursor(&self) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         let emulation_mode = vga.get_emulation_mode();
-        let cursor_start =
-            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorStart);
-        vga.write_crtc_controller(
+        let cursor_start = vga
+            .crtc_controller_registers
+            .read(emulation_mode, CrtcControllerIndex::TextCursorStart);
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorStart,
             cursor_start & 0xDF,
@@ -122,16 +129,20 @@ pub trait TextWriter {
     fn set_cursor(&self, scan_line_start: u8, scan_line_end: u8) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         let emulation_mode = vga.get_emulation_mode();
-        let cursor_start =
-            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorStart) & 0xC0;
-        let cursor_end =
-            vga.read_crtc_controller(emulation_mode, CrtcControllerIndex::TextCursorEnd) & 0xE0;
-        vga.write_crtc_controller(
+        let cursor_start = vga
+            .crtc_controller_registers
+            .read(emulation_mode, CrtcControllerIndex::TextCursorStart)
+            & 0xC0;
+        let cursor_end = vga
+            .crtc_controller_registers
+            .read(emulation_mode, CrtcControllerIndex::TextCursorEnd)
+            & 0xE0;
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorStart,
             cursor_start | scan_line_start,
         );
-        vga.write_crtc_controller(
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorEnd,
             cursor_end | scan_line_end,
@@ -146,12 +157,12 @@ pub trait TextWriter {
         let emulation_mode = vga.get_emulation_mode();
         let cursor_start = offset & 0xFF;
         let cursor_end = (offset >> 8) & 0xFF;
-        vga.write_crtc_controller(
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorLocationLow,
             cursor_start as u8,
         );
-        vga.write_crtc_controller(
+        vga.crtc_controller_registers.write(
             emulation_mode,
             CrtcControllerIndex::TextCursorLocationHigh,
             cursor_end as u8,
@@ -166,4 +177,23 @@ pub trait TextWriter {
             frame_buffer.add(offset).write_volatile(screen_character);
         }
     }
+}
+
+/// A helper trait used to interact with various vga graphics modes.
+pub trait GraphicsWriter<Color> {
+    /// Clears the screen by setting all pixels to the specified `color`.
+    fn clear_screen(&self, color: Color);
+    /// /// Draws a line from `start` to `end` with the specified `color`.
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color);
+    /// Draws a character at the given `(x, y)` coordinant to the specified `color`.
+    fn draw_character(&self, x: usize, y: usize, character: char, color: Color);
+    /// Sets the given pixel at `(x, y)` to the given `color`.
+    ///
+    /// **Note:** This method is provided for convenience, but has terrible
+    /// performance since it needs to ensure the correct `WriteMode` per pixel
+    /// drawn. If you need to draw more then one pixel, consider using a method
+    /// such as `draw_line`.
+    fn set_pixel(&self, x: usize, y: usize, color: Color);
+    /// Sets the graphics device to a `VideoMode`.
+    fn set_mode(&self);
 }
