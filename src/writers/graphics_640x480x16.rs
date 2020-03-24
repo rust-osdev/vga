@@ -5,6 +5,7 @@ use crate::{
     registers::{PlaneMask, WriteMode},
     vga::{Vga, VideoMode, VGA},
 };
+use font8x8::UnicodeFonts;
 use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 640;
@@ -59,6 +60,31 @@ impl GraphicsWriter<Color16Bit> for Graphics640x480x16 {
 
         for (x, y) in Bresenham::new(start, end) {
             self._set_pixel(x as usize, y as usize, color);
+        }
+    }
+
+    fn draw_character(&self, x: usize, y: usize, character: char, color: Color16Bit) {
+        let character = match font8x8::BASIC_FONTS.get(character) {
+            Some(character) => character,
+            None => font8x8::unicode::BLOCK_UNICODE[8].byte_array(),
+        };
+
+        {
+            let (mut vga, _frame_buffer) = self.get_frame_buffer();
+            vga.graphics_controller_registers
+                .set_write_mode(WriteMode::Mode2);
+            vga.graphics_controller_registers.set_bit_mask(0xFF);
+            vga.sequencer_registers
+                .set_plane_mask(PlaneMask::ALL_PLANES);
+        }
+
+        for (y1, byte) in character.iter().enumerate() {
+            for bit in 0..8 {
+                match *byte & 1 << bit {
+                    0 => {}
+                    _ => self._set_pixel(x + bit, y + y1, color),
+                }
+            }
         }
     }
 
