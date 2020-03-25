@@ -87,6 +87,10 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
         }
     }
 
+    /// **Note:** This method is provided for convenience, but has terrible
+    /// performance since it needs to ensure the correct `WriteMode` per pixel
+    /// drawn. If you need to draw more then one pixel, consider using a method
+    /// such as `draw_line`.
     fn set_pixel(&self, x: usize, y: usize, color: Color16) {
         self.set_write_mode_2();
         self._set_pixel(x, y, color);
