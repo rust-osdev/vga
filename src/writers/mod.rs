@@ -1,4 +1,5 @@
 //! Writers for common vga modes.
+mod graphics_320x200x256;
 mod graphics_640x480x16;
 mod text_40x25;
 mod text_40x50;
@@ -12,6 +13,7 @@ use super::{
 };
 use spinning_top::SpinlockGuard;
 
+pub use graphics_320x200x256::Graphics320x200x256;
 pub use graphics_640x480x16::Graphics640x480x16;
 pub use text_40x25::Text40x25;
 pub use text_40x50::Text40x50;
