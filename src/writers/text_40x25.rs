@@ -1,4 +1,4 @@
-use super::TextWriter;
+use super::{Screen, TextWriter};
 use crate::{
     colors::DEFAULT_PALETTE,
     fonts::TEXT_8X16_FONT,
@@ -15,11 +15,11 @@ const HEIGHT: usize = 25;
 /// Basic usage:
 ///
 /// ```no_run
-/// use vga::colors::{Color16Bit, TextModeColor};
+/// use vga::colors::{Color16, TextModeColor};
 /// use vga::writers::{ScreenCharacter, TextWriter, Text40x25};
 ///
 /// let text_mode = Text40x25::new();
-/// let color = TextModeColor::new(Color16Bit::Yellow, Color16Bit::Black);
+/// let color = TextModeColor::new(Color16::Yellow, Color16::Black);
 /// let screen_character = ScreenCharacter::new(b'T', color);
 ///
 /// text_mode.set_mode();
@@ -29,7 +29,7 @@ const HEIGHT: usize = 25;
 #[derive(Default)]
 pub struct Text40x25;
 
-impl TextWriter for Text40x25 {
+impl Screen for Text40x25 {
     fn get_width(&self) -> usize {
         WIDTH
     }
@@ -38,6 +38,12 @@ impl TextWriter for Text40x25 {
         HEIGHT
     }
 
+    fn get_size(&self) -> usize {
+        WIDTH * HEIGHT
+    }
+}
+
+impl TextWriter for Text40x25 {
     /// Sets the graphics device to `VideoMode::Mode40x25`.
     fn set_mode(&self) {
         let mut vga = VGA.lock();
@@ -45,7 +51,7 @@ impl TextWriter for Text40x25 {
 
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
-        vga.load_palette(&DEFAULT_PALETTE);
+        vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
         vga.load_font(&TEXT_8X16_FONT);
     }
 }
