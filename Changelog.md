@@ -1,3 +1,8 @@
+# 0.2.1
+
+- Added `Graphics320x200x256` mode.
+- Implemented `Screen` for `Graphics640x480x16`.
+
 # 0.2.0
 
 ## Breaking

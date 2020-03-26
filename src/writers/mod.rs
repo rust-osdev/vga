@@ -1,4 +1,5 @@
 //! Writers for common vga modes.
+mod graphics_320x200x256;
 mod graphics_640x480x16;
 mod text_40x25;
 mod text_40x50;
@@ -12,6 +13,7 @@ use super::{
 };
 use spinning_top::SpinlockGuard;
 
+pub use graphics_320x200x256::Graphics320x200x256;
 pub use graphics_640x480x16::Graphics640x480x16;
 pub use text_40x25::Text40x25;
 pub use text_40x50::Text40x50;
@@ -183,16 +185,11 @@ pub trait TextWriter: Screen {
 pub trait GraphicsWriter<Color> {
     /// Clears the screen by setting all pixels to the specified `color`.
     fn clear_screen(&self, color: Color);
-    /// /// Draws a line from `start` to `end` with the specified `color`.
+    /// Draws a line from `start` to `end` with the specified `color`.
     fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color);
     /// Draws a character at the given `(x, y)` coordinant to the specified `color`.
     fn draw_character(&self, x: usize, y: usize, character: char, color: Color);
     /// Sets the given pixel at `(x, y)` to the given `color`.
-    ///
-    /// **Note:** This method is provided for convenience, but has terrible
-    /// performance since it needs to ensure the correct `WriteMode` per pixel
-    /// drawn. If you need to draw more then one pixel, consider using a method
-    /// such as `draw_line`.
     fn set_pixel(&self, x: usize, y: usize, color: Color);
     /// Sets the graphics device to a `VideoMode`.
     fn set_mode(&self);

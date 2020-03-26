@@ -1,4 +1,4 @@
-use super::GraphicsWriter;
+use super::{GraphicsWriter, Screen};
 use crate::{
     colors::{Color16, DEFAULT_PALETTE},
     drawing::{Bresenham, Point},
@@ -10,6 +10,7 @@ use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 480;
+const SIZE: usize = WIDTH * HEIGHT;
 const ALL_PLANES_SCREEN_SIZE: usize = (WIDTH * HEIGHT) / 8;
 const WIDTH_IN_BYTES: usize = WIDTH / 8;
 
@@ -37,6 +38,18 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 /// ```
 #[derive(Default)]
 pub struct Graphics640x480x16;
+
+impl Screen for Graphics640x480x16 {
+    fn get_width(&self) -> usize {
+        WIDTH
+    }
+    fn get_height(&self) -> usize {
+        HEIGHT
+    }
+    fn get_size(&self) -> usize {
+        SIZE
+    }
+}
 
 impl GraphicsWriter<Color16> for Graphics640x480x16 {
     fn clear_screen(&self, color: Color16) {
@@ -74,6 +87,10 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
         }
     }
 
+    /// **Note:** This method is provided for convenience, but has terrible
+    /// performance since it needs to ensure the correct `WriteMode` per pixel
+    /// drawn. If you need to draw more then one pixel, consider using a method
+    /// such as `draw_line`.
     fn set_pixel(&self, x: usize, y: usize, color: Color16) {
         self.set_write_mode_2();
         self._set_pixel(x, y, color);
