@@ -12,6 +12,27 @@ const HEIGHT: usize = 200;
 const SIZE: usize = WIDTH * HEIGHT;
 
 /// A basic interface for interacting with vga graphics mode 320x200x256.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use vga::colors::Color16;
+/// use vga::writers::{Graphics320x200x256, GraphicsWriter};
+
+/// let mode = Graphics320x200x256::new();
+/// mode.set_mode();
+/// mode.clear_screen(0);
+/// mode.draw_line((60, 20), (260, 20), 255);
+/// mode.draw_line((60, 20), (60, 180), 255);
+/// mode.draw_line((60, 180), (260, 180), 255);
+/// mode.draw_line((260, 180), (260, 20), 255);
+/// mode.draw_line((60, 40), (260, 40), 255);
+/// for (offset, character) in "Hello World!".chars().enumerate() {
+///     mode.draw_character(118 + offset * 8, 27, character, 255);
+/// }
+/// ```
 #[derive(Default)]
 pub struct Graphics320x200x256 {}
 
