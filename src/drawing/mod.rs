@@ -3,13 +3,25 @@
 use num_traits::{NumAssignOps, NumCast, Signed};
 
 mod bresenham;
+mod device;
 mod octant;
 
 pub(crate) use bresenham::Bresenham;
+pub use device::Device;
 use octant::Octant;
 
 /// A point in 2D space.
-pub type Point<T> = (T, T);
+#[derive(Copy, Clone)]
+pub struct Point<T> {
+    pub x: T,
+    pub y: T,
+}
+
+impl<T> Point<T> {
+    pub fn new(x: T, y: T) -> Point<T> {
+        Point { x, y }
+    }
+}
 
 pub(crate) trait SignedNum: Signed + Ord + Copy + NumCast + NumAssignOps {
     fn cast<T: NumCast>(value: T) -> Self {

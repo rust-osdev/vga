@@ -1,7 +1,7 @@
 use super::{GraphicsWriter, Screen};
 use crate::{
     colors::DEFAULT_PALETTE,
-    drawing::{Bresenham, Point},
+    drawing::{Bresenham, Device, Point},
     vga::{Vga, VideoMode, VGA},
 };
 use font8x8::UnicodeFonts;
@@ -53,6 +53,8 @@ impl Screen for Graphics320x200x256 {
     }
 }
 
+impl Device<u8> for Graphics320x200x256 {}
+
 impl GraphicsWriter<u8> for Graphics320x200x256 {
     fn clear_screen(&self, color: u8) {
         for x in 0..WIDTH {
@@ -62,7 +64,7 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
         }
     }
     fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u8) {
-        for (x, y) in Bresenham::new(start, end) {
+        for Point { x, y } in Bresenham::new(start, end) {
             self.set_pixel(x as usize, y as usize, color);
         }
     }

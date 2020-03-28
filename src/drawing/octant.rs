@@ -15,8 +15,8 @@ impl Octant {
         T: Sub<Output = T> + Neg<Output = T> + PartialOrd + Zero,
     {
         let mut value = 0;
-        let mut dx = end.0 - start.0;
-        let mut dy = end.1 - start.1;
+        let mut dx = end.x - start.x;
+        let mut dy = end.y - start.y;
 
         if dy < T::zero() {
             dx = -dx;
@@ -45,14 +45,14 @@ impl Octant {
         T: Neg<Output = T>,
     {
         match self.value {
-            0 => (point.0, point.1),
-            1 => (point.1, point.0),
-            2 => (point.1, -point.0),
-            3 => (-point.0, point.1),
-            4 => (-point.0, -point.1),
-            5 => (-point.1, -point.0),
-            6 => (-point.1, point.0),
-            7 => (point.0, -point.1),
+            0 => Point::new(point.x, point.y),
+            1 => Point::new(point.y, point.x),
+            2 => Point::new(point.y, -point.x),
+            3 => Point::new(-point.x, point.y),
+            4 => Point::new(-point.x, -point.y),
+            5 => Point::new(-point.y, -point.x),
+            6 => Point::new(-point.y, point.x),
+            7 => Point::new(point.x, -point.y),
             _ => unreachable!(),
         }
     }
@@ -61,14 +61,14 @@ impl Octant {
     #[inline]
     pub fn from<T: Neg<Output = T>>(&self, point: Point<T>) -> Point<T> {
         match self.value {
-            0 => (point.0, point.1),
-            1 => (point.1, point.0),
-            2 => (-point.1, point.0),
-            3 => (-point.0, point.1),
-            4 => (-point.0, -point.1),
-            5 => (-point.1, -point.0),
-            6 => (point.1, -point.0),
-            7 => (point.0, -point.1),
+            0 => Point::new(point.x, point.y),
+            1 => Point::new(point.y, point.x),
+            2 => Point::new(-point.y, point.x),
+            3 => Point::new(-point.x, point.y),
+            4 => Point::new(-point.x, -point.y),
+            5 => Point::new(-point.y, -point.x),
+            6 => Point::new(point.y, -point.x),
+            7 => Point::new(point.x, -point.y),
             _ => unreachable!(),
         }
     }

@@ -1,7 +1,7 @@
 use super::{GraphicsWriter, Screen};
 use crate::{
     colors::{Color16, DEFAULT_PALETTE},
-    drawing::{Bresenham, Point},
+    drawing::{Bresenham, Device, Point},
     registers::{PlaneMask, WriteMode},
     vga::{Vga, VideoMode, VGA},
 };
@@ -51,6 +51,8 @@ impl Screen for Graphics640x480x16 {
     }
 }
 
+impl Device<Color16> for Graphics640x480x16 {}
+
 impl GraphicsWriter<Color16> for Graphics640x480x16 {
     fn clear_screen(&self, color: Color16) {
         self.set_write_mode_2();
@@ -64,7 +66,7 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
 
     fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16) {
         self.set_write_mode_0(color);
-        for (x, y) in Bresenham::new(start, end) {
+        for Point { x, y } in Bresenham::new(start, end) {
             self._set_pixel(x as usize, y as usize, color);
         }
     }

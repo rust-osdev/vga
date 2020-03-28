@@ -16,15 +16,15 @@ impl<T: SignedNum> Bresenham<T> {
         let start = octant.to(start);
         let end = octant.to(end);
 
-        let delta_x = end.0 - start.0;
-        let delta_y = end.1 - start.1;
+        let delta_x = end.x - start.x;
+        let delta_y = end.y - start.y;
 
         Self {
             delta_x,
             delta_y,
             octant,
             point: start,
-            end_x: end.0,
+            end_x: end.x,
             error: delta_y - delta_x,
         }
     }
@@ -38,15 +38,15 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.point.0 <= self.end_x {
+        if self.point.x <= self.end_x {
             let point = self.octant.from(self.point);
 
             if self.error >= T::zero() {
-                self.point.1 += T::one();
+                self.point.y += T::one();
                 self.error -= self.delta_x;
             }
 
-            self.point.0 += T::one();
+            self.point.x += T::one();
             self.error += self.delta_y;
 
             Some(point)
