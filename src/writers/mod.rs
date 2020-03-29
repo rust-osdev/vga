@@ -8,9 +8,8 @@ mod text_80x25;
 use super::{
     colors::{Color16, TextModeColor},
     registers::CrtcControllerIndex,
-    vga::{Vga, VGA},
+    vga::VGA,
 };
-use spinning_top::SpinlockGuard;
 
 pub use graphics_320x200x256::Graphics320x200x256;
 pub use graphics_640x480x16::Graphics640x480x16;
@@ -64,20 +63,18 @@ pub trait TextWriter: Screen {
     /// the `TextWriter` implementation.
     fn set_mode(&self);
 
-    /// Returns the start of the `FrameBuffer` as `*mut ScreenCharacter`
-    /// as well as a lock to the vga driver. This ensures the vga
-    /// driver stays locked while the frame buffer is in use.
-    fn get_frame_buffer(&self) -> (SpinlockGuard<Vga>, *mut ScreenCharacter) {
+    /// Returns the start of the `FrameBuffer` as `*mut ScreenCharacter`.
+    fn get_frame_buffer(&self) -> *mut ScreenCharacter {
         let mut vga = VGA.lock();
         let frame_buffer = vga.get_frame_buffer();
-        (vga, u32::from(frame_buffer) as *mut ScreenCharacter)
+        u32::from(frame_buffer) as *mut ScreenCharacter
     }
 
     /// Clears the screen by setting all cells to `b' '` with
     /// a background color of `Color16::Black` and a foreground
     /// color of `Color16::Yellow`.
     fn clear_screen(&self) {
-        let (_vga, frame_buffer) = self.get_frame_buffer();
+        let frame_buffer = self.get_frame_buffer();
         let screen_size = self.get_width() * self.get_height();
         for i in 0..screen_size {
             unsafe {
@@ -88,7 +85,7 @@ pub trait TextWriter: Screen {
 
     /// Disables the cursor in vga text modes.
     fn disable_cursor(&self) {
-        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let mut vga = VGA.lock();
         let emulation_mode = vga.get_emulation_mode();
         let cursor_start = vga
             .crtc_controller_registers
@@ -102,7 +99,7 @@ pub trait TextWriter: Screen {
 
     /// Enables the cursor in vga text modes.
     fn enable_cursor(&self) {
-        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let mut vga = VGA.lock();
         let emulation_mode = vga.get_emulation_mode();
         let cursor_start = vga
             .crtc_controller_registers
@@ -116,7 +113,7 @@ pub trait TextWriter: Screen {
 
     /// Returns the `ScreenCharacter` at the given `(x, y)` position.
     fn read_character(&self, x: usize, y: usize) -> ScreenCharacter {
-        let (_vga, frame_buffer) = self.get_frame_buffer();
+        let frame_buffer = self.get_frame_buffer();
         let offset = self.get_width() * y + x;
         unsafe { frame_buffer.add(offset).read_volatile() }
     }
@@ -128,7 +125,7 @@ pub trait TextWriter: Screen {
     /// determined by `CrtcControllerIndex::MaxiumumScanLine (usually 15)`.
     /// If `scan_line_start > scan_line_end`, the cursor isn't drawn.
     fn set_cursor(&self, scan_line_start: u8, scan_line_end: u8) {
-        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let mut vga = VGA.lock();
         let emulation_mode = vga.get_emulation_mode();
         let cursor_start = vga
             .crtc_controller_registers
@@ -154,7 +151,7 @@ pub trait TextWriter: Screen {
     /// `x` and `y`.
     fn set_cursor_position(&self, x: usize, y: usize) {
         let offset = self.get_width() * y + x;
-        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let mut vga = VGA.lock();
         let emulation_mode = vga.get_emulation_mode();
         let cursor_start = offset & 0xFF;
         let cursor_end = (offset >> 8) & 0xFF;
@@ -172,7 +169,7 @@ pub trait TextWriter: Screen {
 
     /// Prints the given `character` and `color` at `(x, y)`.
     fn write_character(&self, x: usize, y: usize, screen_character: ScreenCharacter) {
-        let (_vga, frame_buffer) = self.get_frame_buffer();
+        let frame_buffer = self.get_frame_buffer();
         let offset = self.get_width() * y + x;
         unsafe {
             frame_buffer.add(offset).write_volatile(screen_character);
