@@ -8,12 +8,12 @@ where
     Color: Clone + Copy,
 {
     /// Draws a character at the given `(x, y)` coordinant to the specified `color`.
-    fn draw_character(&self, x: usize, y: usize, character: char, color: Color);
+    fn draw_character(&mut self, x: usize, y: usize, character: char, color: Color);
 
     /// Draws a line from `start` to `end` with the specified `color`.
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color);
+    fn draw_line(&mut self, start: Point<isize>, end: Point<isize>, color: Color);
 
-    fn draw_triangle(&self, v0: &Point<i32>, v1: &Point<i32>, v2: &Point<i32>, color: Color) {
+    fn draw_triangle(&mut self, v0: &Point<i32>, v1: &Point<i32>, v2: &Point<i32>, color: Color) {
         let screen_width = self.get_width() as i32;
         let screen_height = self.get_height() as i32;
         let mut min_x = min(v0.x, min(v1.x, v2.x));
@@ -39,6 +39,8 @@ where
             }
         }
     }
+
+    fn present(&self);
 }
 
 #[inline]

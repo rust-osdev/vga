@@ -2,10 +2,11 @@ use super::{GraphicsWriter, Screen};
 use crate::{
     colors::DEFAULT_PALETTE,
     drawing::{Bresenham, Device, Point},
-    vga::{Vga, VideoMode, VGA},
+    vga::{VideoMode, VGA},
 };
+use alloc::vec::Vec;
+use core::ptr;
 use font8x8::UnicodeFonts;
-use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 320;
 const HEIGHT: usize = 200;
@@ -34,7 +35,9 @@ const SIZE: usize = WIDTH * HEIGHT;
 /// }
 /// ```
 #[derive(Default)]
-pub struct Graphics320x200x256 {}
+pub struct Graphics320x200x256 {
+    screen_buffer: Vec<u8>,
+}
 
 impl Screen for Graphics320x200x256 {
     #[inline]
@@ -54,7 +57,7 @@ impl Screen for Graphics320x200x256 {
 }
 
 impl Device<u8> for Graphics320x200x256 {
-    fn draw_character(&self, x: usize, y: usize, character: char, color: u8) {
+    fn draw_character(&mut self, x: usize, y: usize, character: char, color: u8) {
         let character = match font8x8::BASIC_FONTS.get(character) {
             Some(character) => character,
             // Default to a filled block if the character isn't found
@@ -71,28 +74,41 @@ impl Device<u8> for Graphics320x200x256 {
         }
     }
 
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u8) {
+    fn draw_line(&mut self, start: Point<isize>, end: Point<isize>, color: u8) {
         for Point { x, y } in Bresenham::new(start, end) {
             self.set_pixel(x as usize, y as usize, color);
+        }
+    }
+
+    fn present(&self) {
+        {
+            let mut vga = VGA.lock();
+            let emulation_mode = vga.get_emulation_mode();
+            while vga.general_registers.read_st01(emulation_mode) & 0x3 != 0 {}
+        }
+        unsafe {
+            ptr::copy_nonoverlapping(
+                self.screen_buffer.as_ptr(),
+                self.get_frame_buffer(),
+                self.screen_buffer.len(),
+            );
         }
     }
 }
 
 impl GraphicsWriter<u8> for Graphics320x200x256 {
-    fn clear_screen(&self, color: u8) {
-        for x in 0..WIDTH {
-            for y in 0..HEIGHT {
-                self.set_pixel(x, y, color);
-            }
-        }
-    }
-    fn set_pixel(&self, x: usize, y: usize, color: u8) {
-        let frame_buffer = self.get_frame_buffer();
-        let offset = (y * WIDTH) + x;
+    fn clear_screen(&mut self, color: u8) {
         unsafe {
-            frame_buffer.add(offset).write_volatile(color);
+            self.screen_buffer
+                .as_mut_ptr()
+                .write_bytes(color, self.screen_buffer.len());
         }
     }
+
+    fn set_pixel(&mut self, x: usize, y: usize, color: u8) {
+        self.screen_buffer[(y * WIDTH) + x] = color;
+    }
+
     fn set_mode(&self) {
         let mut vga = VGA.lock();
         vga.set_video_mode(VideoMode::Mode320x200x256);
@@ -106,7 +122,11 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
 impl Graphics320x200x256 {
     /// Creates a new `Graphics320x200x256`.
     pub fn new() -> Graphics320x200x256 {
-        Graphics320x200x256 {}
+        let mut screen_buffer = Vec::with_capacity(SIZE);
+        for _ in 0..SIZE {
+            screen_buffer.push(0);
+        }
+        Graphics320x200x256 { screen_buffer }
     }
 
     fn get_frame_buffer(&self) -> *mut u8 {

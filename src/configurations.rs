@@ -249,7 +249,7 @@ pub const MODE_640X480X16_CONFIGURATION: VgaConfiguration = VgaConfiguration {
     sequencer_registers: &[
         (SequencerIndex::SequencerReset, 0x03),
         (SequencerIndex::ClockingMode, 0x01),
-        (SequencerIndex::PlaneMask, 0x08),
+        (SequencerIndex::PlaneMask, 0x0F),
         (SequencerIndex::CharacterFont, 0x00),
         (SequencerIndex::MemoryMode, 0x06),
     ],
@@ -286,7 +286,7 @@ pub const MODE_640X480X16_CONFIGURATION: VgaConfiguration = VgaConfiguration {
         (GraphicsControllerIndex::ColorCompare, 0x00),
         (GraphicsControllerIndex::DataRotate, 0x00),
         (GraphicsControllerIndex::ReadPlaneSelect, 0x03),
-        (GraphicsControllerIndex::GraphicsMode, 0x00),
+        (GraphicsControllerIndex::GraphicsMode, 0x02),
         (GraphicsControllerIndex::Miscellaneous, 0x05),
         (GraphicsControllerIndex::ColorDontCare, 0x0F),
         (GraphicsControllerIndex::BitMask, 0xFF),

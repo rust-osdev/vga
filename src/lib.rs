@@ -7,6 +7,8 @@
 #![no_std]
 #![warn(missing_docs)]
 
+extern crate alloc;
+
 pub mod colors;
 pub mod configurations;
 pub mod drawing;

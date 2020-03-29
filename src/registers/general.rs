@@ -1,6 +1,7 @@
 use super::{
-    FCR_CGA_WRITE_ADDRESS, FCR_MDA_WRITE_ADDRESS, FCR_READ_ADDRESS, MSR_READ_ADDRESS,
-    MSR_WRITE_ADDRESS, ST00_READ_ADDRESS, ST01_READ_CGA_ADDRESS, ST01_READ_MDA_ADDRESS,
+    EmulationMode, FCR_CGA_WRITE_ADDRESS, FCR_MDA_WRITE_ADDRESS, FCR_READ_ADDRESS,
+    MSR_READ_ADDRESS, MSR_WRITE_ADDRESS, ST00_READ_ADDRESS, ST01_READ_CGA_ADDRESS,
+    ST01_READ_MDA_ADDRESS,
 };
 use x86_64::instructions::port::{PortReadOnly, PortWriteOnly};
 
@@ -40,6 +41,13 @@ impl GeneralRegisters {
     pub fn write_msr(&mut self, value: u8) {
         unsafe {
             self.msr_write.write(value);
+        }
+    }
+
+    pub fn read_st01(&mut self, emulation_mode: EmulationMode) -> u8 {
+        match emulation_mode {
+            EmulationMode::Cga => unsafe { self.st01_read_cga.read() },
+            EmulationMode::Mda => unsafe { self.st01_read_mda.read() },
         }
     }
 }

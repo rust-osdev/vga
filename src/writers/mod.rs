@@ -7,7 +7,6 @@ mod text_80x25;
 
 use super::{
     colors::{Color16, TextModeColor},
-    drawing::Point,
     registers::CrtcControllerIndex,
     vga::{Vga, VGA},
 };
@@ -184,9 +183,9 @@ pub trait TextWriter: Screen {
 /// A helper trait used to interact with various vga graphics modes.
 pub trait GraphicsWriter<Color> {
     /// Clears the screen by setting all pixels to the specified `color`.
-    fn clear_screen(&self, color: Color);
+    fn clear_screen(&mut self, color: Color);
     /// Sets the given pixel at `(x, y)` to the given `color`.
-    fn set_pixel(&self, x: usize, y: usize, color: Color);
+    fn set_pixel(&mut self, x: usize, y: usize, color: Color);
     /// Sets the graphics device to a `VideoMode`.
     fn set_mode(&self);
 }
