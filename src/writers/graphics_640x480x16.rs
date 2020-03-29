@@ -51,26 +51,7 @@ impl Screen for Graphics640x480x16 {
     }
 }
 
-impl Device<Color16> for Graphics640x480x16 {}
-
-impl GraphicsWriter<Color16> for Graphics640x480x16 {
-    fn clear_screen(&self, color: Color16) {
-        self.set_write_mode_2();
-        let (_vga, frame_buffer) = self.get_frame_buffer();
-        for offset in 0..ALL_PLANES_SCREEN_SIZE {
-            unsafe {
-                frame_buffer.add(offset).write_volatile(u8::from(color));
-            }
-        }
-    }
-
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16) {
-        self.set_write_mode_0(color);
-        for Point { x, y } in Bresenham::new(start, end) {
-            self._set_pixel(x as usize, y as usize, color);
-        }
-    }
-
+impl Device<Color16> for Graphics640x480x16 {
     fn draw_character(&self, x: usize, y: usize, character: char, color: Color16) {
         self.set_write_mode_2();
         let character = match font8x8::BASIC_FONTS.get(character) {
@@ -85,6 +66,25 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
                     0 => (),
                     _ => self._set_pixel(x + bit, y + row, color),
                 }
+            }
+        }
+    }
+
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16) {
+        self.set_write_mode_0(color);
+        for Point { x, y } in Bresenham::new(start, end) {
+            self._set_pixel(x as usize, y as usize, color);
+        }
+    }
+}
+
+impl GraphicsWriter<Color16> for Graphics640x480x16 {
+    fn clear_screen(&self, color: Color16) {
+        self.set_write_mode_2();
+        let frame_buffer = self.get_frame_buffer();
+        for offset in 0..ALL_PLANES_SCREEN_SIZE {
+            unsafe {
+                frame_buffer.add(offset).write_volatile(u8::from(color));
             }
         }
     }
@@ -115,7 +115,7 @@ impl Graphics640x480x16 {
     }
 
     fn set_write_mode_0(&self, color: Color16) {
-        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let mut vga = VGA.lock();
         vga.graphics_controller_registers.write_set_reset(color);
         vga.graphics_controller_registers
             .write_enable_set_reset(0xF);
@@ -124,7 +124,7 @@ impl Graphics640x480x16 {
     }
 
     fn set_write_mode_2(&self) {
-        let (mut vga, _frame_buffer) = self.get_frame_buffer();
+        let mut vga = VGA.lock();
         vga.graphics_controller_registers
             .set_write_mode(WriteMode::Mode2);
         vga.graphics_controller_registers.set_bit_mask(0xFF);
@@ -132,21 +132,18 @@ impl Graphics640x480x16 {
             .set_plane_mask(PlaneMask::ALL_PLANES);
     }
 
-    /// Returns the start of the `FrameBuffer` as `*mut u8` as
-    /// well as a lock to the vga driver. This ensures the vga
-    /// driver stays locked while the frame buffer is in use.
-    fn get_frame_buffer(&self) -> (SpinlockGuard<Vga>, *mut u8) {
-        let mut vga = VGA.lock();
-        let frame_buffer = vga.get_frame_buffer();
-        (vga, u32::from(frame_buffer) as *mut u8)
+    fn get_frame_buffer(&self) -> *mut u8 {
+        u32::from(VGA.lock().get_frame_buffer()) as *mut u8
     }
 
     #[inline]
     fn _set_pixel(&self, x: usize, y: usize, color: Color16) {
-        let (mut vga, frame_buffer) = self.get_frame_buffer();
+        let frame_buffer = self.get_frame_buffer();
         let offset = x / 8 + y * WIDTH_IN_BYTES;
         let pixel_mask = 0x80 >> (x & 0x07);
-        vga.graphics_controller_registers.set_bit_mask(pixel_mask);
+        VGA.lock()
+            .graphics_controller_registers
+            .set_bit_mask(pixel_mask);
         unsafe {
             frame_buffer.add(offset).read_volatile();
             frame_buffer.add(offset).write_volatile(u8::from(color));

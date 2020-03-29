@@ -53,28 +53,7 @@ impl Screen for Graphics320x200x256 {
     }
 }
 
-impl Device<u8> for Graphics320x200x256 {}
-
-impl GraphicsWriter<u8> for Graphics320x200x256 {
-    fn clear_screen(&self, color: u8) {
-        for x in 0..WIDTH {
-            for y in 0..HEIGHT {
-                self.set_pixel(x, y, color);
-            }
-        }
-    }
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u8) {
-        for Point { x, y } in Bresenham::new(start, end) {
-            self.set_pixel(x as usize, y as usize, color);
-        }
-    }
-    fn set_pixel(&self, x: usize, y: usize, color: u8) {
-        let (_vga, frame_buffer) = self.get_frame_buffer();
-        let offset = (y * WIDTH) + x;
-        unsafe {
-            frame_buffer.add(offset).write_volatile(color);
-        }
-    }
+impl Device<u8> for Graphics320x200x256 {
     fn draw_character(&self, x: usize, y: usize, character: char, color: u8) {
         let character = match font8x8::BASIC_FONTS.get(character) {
             Some(character) => character,
@@ -89,6 +68,29 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
                     _ => self.set_pixel(x + bit, y + row, color),
                 }
             }
+        }
+    }
+
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u8) {
+        for Point { x, y } in Bresenham::new(start, end) {
+            self.set_pixel(x as usize, y as usize, color);
+        }
+    }
+}
+
+impl GraphicsWriter<u8> for Graphics320x200x256 {
+    fn clear_screen(&self, color: u8) {
+        for x in 0..WIDTH {
+            for y in 0..HEIGHT {
+                self.set_pixel(x, y, color);
+            }
+        }
+    }
+    fn set_pixel(&self, x: usize, y: usize, color: u8) {
+        let frame_buffer = self.get_frame_buffer();
+        let offset = (y * WIDTH) + x;
+        unsafe {
+            frame_buffer.add(offset).write_volatile(color);
         }
     }
     fn set_mode(&self) {
@@ -107,12 +109,7 @@ impl Graphics320x200x256 {
         Graphics320x200x256 {}
     }
 
-    /// Returns the start of the `FrameBuffer` as `*mut u8` as
-    /// well as a lock to the vga driver. This ensures the vga
-    /// driver stays locked while the frame buffer is in use.
-    fn get_frame_buffer(&self) -> (SpinlockGuard<Vga>, *mut u8) {
-        let mut vga = VGA.lock();
-        let frame_buffer = vga.get_frame_buffer();
-        (vga, u32::from(frame_buffer) as *mut u8)
+    fn get_frame_buffer(&self) -> *mut u8 {
+        u32::from(VGA.lock().get_frame_buffer()) as *mut u8
     }
 }
