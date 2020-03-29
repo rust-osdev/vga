@@ -1,5 +1,7 @@
 //! Writers for common vga modes.
+#[cfg(feature = "alloc")]
 mod graphics_320x200x256;
+#[cfg(feature = "alloc")]
 mod graphics_640x480x16;
 mod text_40x25;
 mod text_40x50;
@@ -11,7 +13,9 @@ use super::{
     vga::VGA,
 };
 
+#[cfg(feature = "alloc")]
 pub use graphics_320x200x256::Graphics320x200x256;
+#[cfg(feature = "alloc")]
 pub use graphics_640x480x16::Graphics640x480x16;
 pub use text_40x25::Text40x25;
 pub use text_40x50::Text40x50;

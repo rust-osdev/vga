@@ -7,6 +7,7 @@
 #![no_std]
 #![warn(missing_docs)]
 
+#[cfg(feature = "alloc")]
 extern crate alloc;
 
 pub mod colors;

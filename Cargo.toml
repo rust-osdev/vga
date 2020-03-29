@@ -28,3 +28,10 @@ x86_64 = "0.9.6"
 [dependencies.num-traits]
 version = "0.2.11"
 default-features = false
+
+[features]
+default = []
+alloc = []
+
+[package.metadata.docs.rs]
+features = ["alloc"]
