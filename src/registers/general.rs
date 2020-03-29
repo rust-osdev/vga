@@ -44,6 +44,8 @@ impl GeneralRegisters {
         }
     }
 
+    /// Reads the current value from the input status 1 register
+    /// as specified by the `emulation_mode`.
     pub fn read_st01(&mut self, emulation_mode: EmulationMode) -> u8 {
         match emulation_mode {
             EmulationMode::Cga => unsafe { self.st01_read_cga.read() },

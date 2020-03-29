@@ -12,6 +12,7 @@ extern crate alloc;
 
 pub mod colors;
 pub mod configurations;
+#[cfg(feature = "alloc")]
 pub mod drawing;
 pub mod fonts;
 pub mod registers;

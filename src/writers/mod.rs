@@ -186,6 +186,9 @@ pub trait GraphicsWriter<Color> {
     /// Clears the screen by setting all pixels to the specified `color`.
     fn clear_screen(&mut self, color: Color);
     /// Sets the given pixel at `(x, y)` to the given `color`.
+    ///
+    /// **Note:** This does no bounds checking and will panick if
+    /// `x >= self.get_width() || y >= self.get_height()`.
     fn set_pixel(&mut self, x: usize, y: usize, color: Color);
     /// Sets the graphics device to a `VideoMode`.
     fn set_mode(&self);
