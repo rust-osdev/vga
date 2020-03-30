@@ -30,6 +30,10 @@ where
     fn draw_triangle(&mut self, v0: Point<i32>, v1: Point<i32>, v2: Point<i32>, color: Color) {
         let screen_width = self.get_width() as i32;
         let screen_height = self.get_height() as i32;
+        let (a01, b01) = (v0.y - v1.y, v1.x - v0.x);
+        let (a12, b12) = (v1.y - v2.y, v2.x - v1.x);
+        let (a20, b20) = (v2.y - v0.y, v0.x - v2.x);
+
         let mut min_x = min(v0.x, min(v1.x, v2.x));
         let mut min_y = min(v0.y, min(v1.y, v2.y));
         let mut max_x = max(v0.x, max(v1.x, v2.x));
@@ -40,17 +44,29 @@ where
         max_x = min(max_x, screen_width - 1);
         max_y = min(max_y, screen_height - 1);
 
-        for x in min_x..=max_x {
-            for y in min_y..=max_y {
-                let p = Point::new(x, y);
-                let w0 = orient2d(v1, v2, p);
-                let w1 = orient2d(v2, v0, p);
-                let w2 = orient2d(v0, v1, p);
+        let p = Point::new(min_x, min_y);
+        let mut w0_row = orient2d(v1, v2, p);
+        let mut w1_row = orient2d(v2, v0, p);
+        let mut w2_row = orient2d(v0, v1, p);
 
-                if w0 >= 0 && w1 >= 0 && w2 >= 0 {
+        for y in p.y..=max_y {
+            let mut w0 = w0_row;
+            let mut w1 = w1_row;
+            let mut w2 = w2_row;
+
+            for x in p.x..=max_x {
+                if (w0 | w1 | w2) >= 0 {
                     self.set_pixel(x as usize, y as usize, color);
                 }
+
+                w0 += a12;
+                w1 += a20;
+                w2 += a01;
             }
+
+            w0_row += b12;
+            w1_row += b20;
+            w2_row += b01;
         }
     }
 
