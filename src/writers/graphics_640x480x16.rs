@@ -10,7 +10,6 @@ use font8x8::UnicodeFonts;
 const WIDTH: usize = 640;
 const HEIGHT: usize = 480;
 const SIZE: usize = WIDTH * HEIGHT;
-const WIDTH_IN_BYTES: usize = WIDTH / 8;
 
 /// A basic interface for interacting with vga graphics mode 640x480x16
 ///
@@ -76,15 +75,22 @@ impl Device<Color16> for Graphics640x480x16 {
     }
 
     fn present(&self) {
-        {
-            let mut vga = VGA.lock();
-            let emulation_mode = vga.get_emulation_mode();
-            while vga.general_registers.read_st01(emulation_mode) & 0x3 != 0 {}
-        }
-        for x in 0..WIDTH {
-            for y in 0..HEIGHT {
-                let color = self.screen_buffer[(WIDTH * y) + x];
-                self._set_pixel(x, y, color);
+        let frame_buffer = self.get_frame_buffer();
+        let mut vga = VGA.lock();
+        let emulation_mode = vga.get_emulation_mode();
+        while vga.general_registers.read_st01(emulation_mode) & 0x3 != 0 {}
+        for offset in 0..SIZE {
+            let color = self.screen_buffer[offset];
+            // Set the mask to the pixel being modified
+            vga.graphics_controller_registers
+                .set_bit_mask(0x80 >> (offset & 0x7));
+            // Faster then offset / 8 ?
+            let offset = offset >> 3;
+            unsafe {
+                // Load the memory latch with 8 pixels
+                frame_buffer.add(offset).read_volatile();
+                // Write the color to the masked pixel
+                frame_buffer.add(offset).write_volatile(color);
             }
         }
     }
@@ -125,19 +131,5 @@ impl Graphics640x480x16 {
 
     fn get_frame_buffer(&self) -> *mut u8 {
         u32::from(VGA.lock().get_frame_buffer()) as *mut u8
-    }
-
-    #[inline]
-    fn _set_pixel(&self, x: usize, y: usize, color: u8) {
-        let frame_buffer = self.get_frame_buffer();
-        let offset = x / 8 + y * WIDTH_IN_BYTES;
-        let pixel_mask = 0x80 >> (x & 0x07);
-        VGA.lock()
-            .graphics_controller_registers
-            .set_bit_mask(pixel_mask);
-        unsafe {
-            frame_buffer.add(offset).read_volatile();
-            frame_buffer.add(offset).write_volatile(color);
-        }
     }
 }
