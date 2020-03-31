@@ -87,6 +87,21 @@ pub trait TextWriter: Screen {
         }
     }
 
+    /// Fills the screen by setting all cells to `b' '` with the given color.
+    fn fill_screen(&self, color: TextModeColor) {
+        let (_vga, frame_buffer) = self.get_frame_buffer();
+        let character = ScreenCharacter {
+            character: b' ',
+            color,
+        };
+        let screen_size = self.get_width() * self.get_height();
+        for i in 0..screen_size {
+            unsafe {
+                frame_buffer.add(i).write_volatile(character);
+            }
+        }
+    }
+
     /// Disables the cursor in vga text modes.
     fn disable_cursor(&self) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
