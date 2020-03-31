@@ -37,20 +37,9 @@ const SIZE: usize = WIDTH * HEIGHT;
 pub struct Graphics320x200x256;
 
 impl Screen for Graphics320x200x256 {
-    #[inline]
-    fn get_width(&self) -> usize {
-        WIDTH
-    }
-
-    #[inline]
-    fn get_height(&self) -> usize {
-        HEIGHT
-    }
-
-    #[inline]
-    fn get_size(&self) -> usize {
-        SIZE
-    }
+    const WIDTH: usize = WIDTH;
+    const HEIGHT: usize = HEIGHT;
+    const SIZE: usize = SIZE;
 }
 
 impl GraphicsWriter<u8> for Graphics320x200x256 {

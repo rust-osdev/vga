@@ -40,15 +40,9 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 pub struct Graphics640x480x16;
 
 impl Screen for Graphics640x480x16 {
-    fn get_width(&self) -> usize {
-        WIDTH
-    }
-    fn get_height(&self) -> usize {
-        HEIGHT
-    }
-    fn get_size(&self) -> usize {
-        SIZE
-    }
+    const WIDTH: usize = WIDTH;
+    const HEIGHT: usize = HEIGHT;
+    const SIZE: usize = SIZE;
 }
 
 impl GraphicsWriter<Color16> for Graphics640x480x16 {

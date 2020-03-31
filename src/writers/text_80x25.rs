@@ -7,6 +7,7 @@ use crate::{
 
 const WIDTH: usize = 80;
 const HEIGHT: usize = 25;
+const SIZE: usize = WIDTH * HEIGHT;
 
 /// A basic interface for interacting with vga text mode 80x25
 ///
@@ -30,17 +31,9 @@ const HEIGHT: usize = 25;
 pub struct Text80x25;
 
 impl Screen for Text80x25 {
-    fn get_width(&self) -> usize {
-        WIDTH
-    }
-
-    fn get_height(&self) -> usize {
-        HEIGHT
-    }
-
-    fn get_size(&self) -> usize {
-        WIDTH * HEIGHT
-    }
+    const WIDTH: usize = WIDTH;
+    const HEIGHT: usize = HEIGHT;
+    const SIZE: usize = SIZE;
 }
 
 impl TextWriter for Text80x25 {
