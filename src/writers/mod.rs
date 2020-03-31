@@ -29,7 +29,7 @@ pub struct ScreenCharacter {
 
 impl ScreenCharacter {
     /// Creates a new `ScreenCharacter` with the specified `character` and `TextModeColor`.
-    pub fn new(character: u8, color: TextModeColor) -> ScreenCharacter {
+    pub const fn new(character: u8, color: TextModeColor) -> ScreenCharacter {
         ScreenCharacter { character, color }
     }
 
