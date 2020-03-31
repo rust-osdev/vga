@@ -20,7 +20,7 @@ pub use text_40x50::Text40x50;
 pub use text_80x25::Text80x25;
 
 /// Represents a `ScreenCharacter` in vga text modes.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct ScreenCharacter {
     character: u8,
