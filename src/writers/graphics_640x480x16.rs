@@ -127,7 +127,7 @@ impl Graphics640x480x16 {
     /// Returns the start of the `FrameBuffer` as `*mut u8` as
     /// well as a lock to the vga driver. This ensures the vga
     /// driver stays locked while the frame buffer is in use.
-    fn get_frame_buffer(self) -> (SpinlockGuard<Vga>, *mut u8) {
+    fn get_frame_buffer(self) -> (SpinlockGuard<'static, Vga>, *mut u8) {
         let mut vga = VGA.lock();
         let frame_buffer = vga.get_frame_buffer();
         (vga, u32::from(frame_buffer) as *mut u8)
