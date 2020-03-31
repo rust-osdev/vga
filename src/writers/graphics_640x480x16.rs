@@ -36,7 +36,7 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 ///     mode.draw_character(270 + offset * 8, 72, character, Color16::White)
 /// }
 /// ```
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Graphics640x480x16;
 
 impl Screen for Graphics640x480x16 {

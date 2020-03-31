@@ -26,7 +26,7 @@ const HEIGHT: usize = 50;
 /// text_mode.clear_screen();
 /// text_mode.write_character(0, 0, screen_character);
 /// ```
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Text40x50;
 
 impl Screen for Text40x50 {

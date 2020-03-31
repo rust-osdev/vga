@@ -33,8 +33,8 @@ const SIZE: usize = WIDTH * HEIGHT;
 ///     mode.draw_character(118 + offset * 8, 27, character, 255);
 /// }
 /// ```
-#[derive(Default)]
-pub struct Graphics320x200x256 {}
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Graphics320x200x256;
 
 impl Screen for Graphics320x200x256 {
     #[inline]

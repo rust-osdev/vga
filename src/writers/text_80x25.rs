@@ -26,7 +26,7 @@ const HEIGHT: usize = 25;
 /// text_mode.clear_screen();
 /// text_mode.write_character(0, 0, screen_character);
 /// ```
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Text80x25;
 
 impl Screen for Text80x25 {
