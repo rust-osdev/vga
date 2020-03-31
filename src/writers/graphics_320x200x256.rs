@@ -90,8 +90,8 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
 
 impl Graphics320x200x256 {
     /// Creates a new `Graphics320x200x256`.
-    pub fn new() -> Graphics320x200x256 {
-        Graphics320x200x256 {}
+    pub const fn new() -> Graphics320x200x256 {
+        Graphics320x200x256
     }
 
     /// Returns the start of the `FrameBuffer` as `*mut u8` as

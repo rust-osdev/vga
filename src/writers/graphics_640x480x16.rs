@@ -102,8 +102,8 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
 
 impl Graphics640x480x16 {
     /// Creates a new `Graphics640x480x16`.
-    pub fn new() -> Graphics640x480x16 {
-        Graphics640x480x16 {}
+    pub const fn new() -> Graphics640x480x16 {
+        Graphics640x480x16
     }
 
     fn set_write_mode_0(&self, color: Color16) {

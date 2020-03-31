@@ -51,7 +51,7 @@ impl TextWriter for Text40x50 {
 
 impl Text40x50 {
     /// Creates a new `Text40x50`.
-    pub fn new() -> Text40x50 {
-        Text40x50 {}
+    pub const fn new() -> Text40x50 {
+        Text40x50
     }
 }
