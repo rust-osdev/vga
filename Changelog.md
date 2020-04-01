@@ -10,7 +10,7 @@
 
 ## Other
 
-- Added `Screen::fill_screen(ScreenCharacter)` for convenience.
+- Added `TextWriter::fill_screen(ScreenCharacter)` for convenience.
 
 
 # 0.2.1
