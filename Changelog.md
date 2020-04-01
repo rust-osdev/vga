@@ -1,3 +1,18 @@
+# 0.2.2
+
+## Breaking
+
+- `Screen::get_width()` now accessed by associated constant `i.e Text80x25::WIDTH`.
+- `Screen::get_height()` now accessed by associated constant `i.e Text80x25::HEIGHT`.
+- `Screen::get_size()` now accessed by associated constant `i.e Text80x25::SIZE`.
+- `Graphics320x200x256::new`, `Graphics640x480x16::new`, `Text40x25::new`, `Text40x50::new`, `Text80x25::new` and `ScreenCharacter::new` are now `const fn`.
+- `Graphics320x200x256`, `Graphics640x480x16`, `Text40x25`, `Text40x50`, and `Text80x25` now derive `Copy` and `Clone`.
+
+## Other
+
+- Added `Screen::fill_screen(ScreenCharacter)` for convenience.
+
+
 # 0.2.1
 
 - Added `Graphics320x200x256` mode.
