@@ -7,6 +7,7 @@ use crate::{
 
 const WIDTH: usize = 40;
 const HEIGHT: usize = 50;
+const SIZE: usize = WIDTH * HEIGHT;
 
 /// A basic interface for interacting with vga text mode 40x50
 ///
@@ -26,21 +27,13 @@ const HEIGHT: usize = 50;
 /// text_mode.clear_screen();
 /// text_mode.write_character(0, 0, screen_character);
 /// ```
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Text40x50;
 
 impl Screen for Text40x50 {
-    fn get_width(&self) -> usize {
-        WIDTH
-    }
-
-    fn get_height(&self) -> usize {
-        HEIGHT
-    }
-
-    fn get_size(&self) -> usize {
-        WIDTH * HEIGHT
-    }
+    const WIDTH: usize = WIDTH;
+    const HEIGHT: usize = HEIGHT;
+    const SIZE: usize = SIZE;
 }
 
 impl TextWriter for Text40x50 {
@@ -58,7 +51,7 @@ impl TextWriter for Text40x50 {
 
 impl Text40x50 {
     /// Creates a new `Text40x50`.
-    pub fn new() -> Text40x50 {
-        Text40x50 {}
+    pub const fn new() -> Text40x50 {
+        Text40x50
     }
 }

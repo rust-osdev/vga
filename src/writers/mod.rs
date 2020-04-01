@@ -20,7 +20,7 @@ pub use text_40x50::Text40x50;
 pub use text_80x25::Text80x25;
 
 /// Represents a `ScreenCharacter` in vga text modes.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct ScreenCharacter {
     character: u8,
@@ -29,7 +29,7 @@ pub struct ScreenCharacter {
 
 impl ScreenCharacter {
     /// Creates a new `ScreenCharacter` with the specified `character` and `TextModeColor`.
-    pub fn new(character: u8, color: TextModeColor) -> ScreenCharacter {
+    pub const fn new(character: u8, color: TextModeColor) -> ScreenCharacter {
         ScreenCharacter { character, color }
     }
 
@@ -51,12 +51,12 @@ static BLANK_CHARACTER: ScreenCharacter = ScreenCharacter {
 
 /// A helper trait used to interact with various vga screens.
 pub trait Screen {
-    /// Returns the width of the `Screen`.
-    fn get_width(&self) -> usize;
-    /// Returns the height of the `Screen`.
-    fn get_height(&self) -> usize;
-    /// Returns the size of the `Screen`.
-    fn get_size(&self) -> usize;
+    /// The width of the `Screen`.
+    const WIDTH: usize;
+    /// The height of the `Screen`.
+    const HEIGHT: usize;
+    /// The size (total area) of the `Screen`.
+    const SIZE: usize;
 }
 
 /// A helper trait used to interact with various vga text modes.
@@ -78,11 +78,15 @@ pub trait TextWriter: Screen {
     /// a background color of `Color16::Black` and a foreground
     /// color of `Color16::Yellow`.
     fn clear_screen(&self) {
+        self.fill_screen(BLANK_CHARACTER);
+    }
+
+    /// Fills the screen by setting all cells to the given screen character.
+    fn fill_screen(&self, character: ScreenCharacter) {
         let (_vga, frame_buffer) = self.get_frame_buffer();
-        let screen_size = self.get_width() * self.get_height();
-        for i in 0..screen_size {
+        for i in 0..Self::SIZE {
             unsafe {
-                frame_buffer.add(i).write_volatile(BLANK_CHARACTER);
+                frame_buffer.add(i).write_volatile(character);
             }
         }
     }
@@ -118,7 +122,7 @@ pub trait TextWriter: Screen {
     /// Returns the `ScreenCharacter` at the given `(x, y)` position.
     fn read_character(&self, x: usize, y: usize) -> ScreenCharacter {
         let (_vga, frame_buffer) = self.get_frame_buffer();
-        let offset = self.get_width() * y + x;
+        let offset = Self::WIDTH * y + x;
         unsafe { frame_buffer.add(offset).read_volatile() }
     }
 
@@ -154,7 +158,7 @@ pub trait TextWriter: Screen {
     /// Sets the current text cursor to the position specified by
     /// `x` and `y`.
     fn set_cursor_position(&self, x: usize, y: usize) {
-        let offset = self.get_width() * y + x;
+        let offset = Self::WIDTH * y + x;
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         let emulation_mode = vga.get_emulation_mode();
         let cursor_start = offset & 0xFF;
@@ -174,7 +178,7 @@ pub trait TextWriter: Screen {
     /// Prints the given `character` and `color` at `(x, y)`.
     fn write_character(&self, x: usize, y: usize, screen_character: ScreenCharacter) {
         let (_vga, frame_buffer) = self.get_frame_buffer();
-        let offset = self.get_width() * y + x;
+        let offset = Self::WIDTH * y + x;
         unsafe {
             frame_buffer.add(offset).write_volatile(screen_character);
         }

@@ -36,19 +36,13 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 ///     mode.draw_character(270 + offset * 8, 72, character, Color16::White)
 /// }
 /// ```
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Graphics640x480x16;
 
 impl Screen for Graphics640x480x16 {
-    fn get_width(&self) -> usize {
-        WIDTH
-    }
-    fn get_height(&self) -> usize {
-        HEIGHT
-    }
-    fn get_size(&self) -> usize {
-        SIZE
-    }
+    const WIDTH: usize = WIDTH;
+    const HEIGHT: usize = HEIGHT;
+    const SIZE: usize = SIZE;
 }
 
 impl GraphicsWriter<Color16> for Graphics640x480x16 {
@@ -108,11 +102,11 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
 
 impl Graphics640x480x16 {
     /// Creates a new `Graphics640x480x16`.
-    pub fn new() -> Graphics640x480x16 {
-        Graphics640x480x16 {}
+    pub const fn new() -> Graphics640x480x16 {
+        Graphics640x480x16
     }
 
-    fn set_write_mode_0(&self, color: Color16) {
+    fn set_write_mode_0(self, color: Color16) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         vga.graphics_controller_registers.write_set_reset(color);
         vga.graphics_controller_registers
@@ -121,7 +115,7 @@ impl Graphics640x480x16 {
             .set_write_mode(WriteMode::Mode0);
     }
 
-    fn set_write_mode_2(&self) {
+    fn set_write_mode_2(self) {
         let (mut vga, _frame_buffer) = self.get_frame_buffer();
         vga.graphics_controller_registers
             .set_write_mode(WriteMode::Mode2);
@@ -133,14 +127,14 @@ impl Graphics640x480x16 {
     /// Returns the start of the `FrameBuffer` as `*mut u8` as
     /// well as a lock to the vga driver. This ensures the vga
     /// driver stays locked while the frame buffer is in use.
-    fn get_frame_buffer(&self) -> (SpinlockGuard<Vga>, *mut u8) {
+    fn get_frame_buffer(self) -> (SpinlockGuard<'static, Vga>, *mut u8) {
         let mut vga = VGA.lock();
         let frame_buffer = vga.get_frame_buffer();
         (vga, u32::from(frame_buffer) as *mut u8)
     }
 
     #[inline]
-    fn _set_pixel(&self, x: usize, y: usize, color: Color16) {
+    fn _set_pixel(self, x: usize, y: usize, color: Color16) {
         let (mut vga, frame_buffer) = self.get_frame_buffer();
         let offset = x / 8 + y * WIDTH_IN_BYTES;
         let pixel_mask = 0x80 >> (x & 0x07);

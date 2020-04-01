@@ -4,7 +4,7 @@
 pub const PALETTE_SIZE: usize = 768;
 
 /// Represents a 16 bit color used for vga display.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum Color16 {
     /// Represents the color `Black (0x0)`.
@@ -48,7 +48,7 @@ impl From<Color16> for u8 {
 }
 
 /// Represents a color for vga text modes.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct TextModeColor(u8);
 

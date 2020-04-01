@@ -33,24 +33,13 @@ const SIZE: usize = WIDTH * HEIGHT;
 ///     mode.draw_character(118 + offset * 8, 27, character, 255);
 /// }
 /// ```
-#[derive(Default)]
-pub struct Graphics320x200x256 {}
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Graphics320x200x256;
 
 impl Screen for Graphics320x200x256 {
-    #[inline]
-    fn get_width(&self) -> usize {
-        WIDTH
-    }
-
-    #[inline]
-    fn get_height(&self) -> usize {
-        HEIGHT
-    }
-
-    #[inline]
-    fn get_size(&self) -> usize {
-        SIZE
-    }
+    const WIDTH: usize = WIDTH;
+    const HEIGHT: usize = HEIGHT;
+    const SIZE: usize = SIZE;
 }
 
 impl GraphicsWriter<u8> for Graphics320x200x256 {
@@ -101,14 +90,14 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
 
 impl Graphics320x200x256 {
     /// Creates a new `Graphics320x200x256`.
-    pub fn new() -> Graphics320x200x256 {
-        Graphics320x200x256 {}
+    pub const fn new() -> Graphics320x200x256 {
+        Graphics320x200x256
     }
 
     /// Returns the start of the `FrameBuffer` as `*mut u8` as
     /// well as a lock to the vga driver. This ensures the vga
     /// driver stays locked while the frame buffer is in use.
-    fn get_frame_buffer(&self) -> (SpinlockGuard<Vga>, *mut u8) {
+    fn get_frame_buffer(self) -> (SpinlockGuard<'static, Vga>, *mut u8) {
         let mut vga = VGA.lock();
         let frame_buffer = vga.get_frame_buffer();
         (vga, u32::from(frame_buffer) as *mut u8)
