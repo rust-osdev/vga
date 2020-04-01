@@ -78,21 +78,12 @@ pub trait TextWriter: Screen {
     /// a background color of `Color16::Black` and a foreground
     /// color of `Color16::Yellow`.
     fn clear_screen(&self) {
-        let (_vga, frame_buffer) = self.get_frame_buffer();
-        for i in 0..Self::SIZE {
-            unsafe {
-                frame_buffer.add(i).write_volatile(BLANK_CHARACTER);
-            }
-        }
+        self.fill_screen(BLANK_CHARACTER);
     }
 
-    /// Fills the screen by setting all cells to `b' '` with the given color.
-    fn fill_screen(&self, color: TextModeColor) {
+    /// Fills the screen by setting all cells to the given screen character.
+    fn fill_screen(&self, character: ScreenCharacter) {
         let (_vga, frame_buffer) = self.get_frame_buffer();
-        let character = ScreenCharacter {
-            character: b' ',
-            color,
-        };
         for i in 0..Self::SIZE {
             unsafe {
                 frame_buffer.add(i).write_volatile(character);
