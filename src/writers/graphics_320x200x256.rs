@@ -19,7 +19,7 @@ const SIZE: usize = WIDTH * HEIGHT;
 /// ```no_run
 /// use vga::colors::Color16;
 /// use vga::writers::{Graphics320x200x256, GraphicsWriter};
-
+///
 /// let mode = Graphics320x200x256::new();
 /// mode.set_mode();
 /// mode.clear_screen(0);

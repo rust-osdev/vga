@@ -11,6 +11,28 @@ const WIDTH: usize = 320;
 const HEIGHT: usize = 240;
 const SIZE: usize = (WIDTH * HEIGHT) / 4;
 
+/// A basic interface for interacting with vga graphics mode 320x200x256.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use vga::colors::Color16;
+/// use vga::writers::{Graphics320x240x256, GraphicsWriter};
+///
+/// let mode = Graphics320x240x256::new();
+/// mode.set_mode();
+/// mode.clear_screen(0);
+/// mode.draw_line((60, 20), (260, 20), 255);
+/// mode.draw_line((60, 20), (60, 180), 255);
+/// mode.draw_line((60, 180), (260, 180), 255);
+/// mode.draw_line((260, 180), (260, 20), 255);
+/// mode.draw_line((60, 40), (260, 40), 255);
+/// for (offset, character) in "Hello World!".chars().enumerate() {
+///     mode.draw_character(118 + offset * 8, 27, character, 255);
+/// }
+/// ```
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Graphics320x240x256;
 
@@ -22,13 +44,12 @@ impl Screen for Graphics320x240x256 {
 
 impl GraphicsWriter<u8> for Graphics320x240x256 {
     fn clear_screen(&self, color: u8) {
-        {
-            let mut vga = VGA.lock();
-            vga.sequencer_registers
-                .set_plane_mask(PlaneMask::ALL_PLANES);
-        }
+        let frame_buffer = self.get_frame_buffer();
+        VGA.lock()
+            .sequencer_registers
+            .set_plane_mask(PlaneMask::ALL_PLANES);
         unsafe {
-            self.get_frame_buffer().write_bytes(color, Self::SIZE);
+            frame_buffer.write_bytes(color, Self::SIZE);
         }
     }
     fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u8) {
@@ -74,6 +95,7 @@ impl GraphicsWriter<u8> for Graphics320x240x256 {
 }
 
 impl Graphics320x240x256 {
+    /// Creates a new `Graphics320x240x256`.
     pub const fn new() -> Graphics320x240x256 {
         Graphics320x240x256
     }
