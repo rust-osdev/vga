@@ -22,6 +22,11 @@ impl Screen for Graphics320x240x256 {
 
 impl GraphicsWriter<u8> for Graphics320x240x256 {
     fn clear_screen(&self, color: u8) {
+        {
+            let mut vga = VGA.lock();
+            vga.sequencer_registers
+                .set_plane_mask(PlaneMask::ALL_PLANES);
+        }
         unsafe {
             self.get_frame_buffer().write_bytes(color, Self::SIZE);
         }
