@@ -1,3 +1,8 @@
+# 0.2.3
+
+- Added support for 320x240x256 mode via `Graphics320x240x256`.
+- Added the ability to easily get a pointer to the modes frame buffer via `GraphicsWriter::get_frame_buffer`.
+
 # 0.2.2
 
 ## Breaking
