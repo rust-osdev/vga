@@ -2,13 +2,14 @@ use super::{GraphicsWriter, Screen};
 use crate::{
     colors::DEFAULT_PALETTE,
     drawing::{Bresenham, Point},
+    registers::PlaneMask,
     vga::{VideoMode, VGA},
 };
 use font8x8::UnicodeFonts;
 
 const WIDTH: usize = 320;
-const HEIGHT: usize = 200;
-const SIZE: usize = WIDTH * HEIGHT;
+const HEIGHT: usize = 240;
+const SIZE: usize = (WIDTH * HEIGHT) / 4;
 
 /// A basic interface for interacting with vga graphics mode 320x200x256.
 ///
@@ -18,9 +19,9 @@ const SIZE: usize = WIDTH * HEIGHT;
 ///
 /// ```no_run
 /// use vga::colors::Color16;
-/// use vga::writers::{Graphics320x200x256, GraphicsWriter};
+/// use vga::writers::{Graphics320x240x256, GraphicsWriter};
 ///
-/// let mode = Graphics320x200x256::new();
+/// let mode = Graphics320x240x256::new();
 /// mode.set_mode();
 /// mode.clear_screen(0);
 /// mode.draw_line((60, 20), (260, 20), 255);
@@ -33,18 +34,22 @@ const SIZE: usize = WIDTH * HEIGHT;
 /// }
 /// ```
 #[derive(Debug, Clone, Copy, Default)]
-pub struct Graphics320x200x256;
+pub struct Graphics320x240x256;
 
-impl Screen for Graphics320x200x256 {
+impl Screen for Graphics320x240x256 {
     const WIDTH: usize = WIDTH;
     const HEIGHT: usize = HEIGHT;
     const SIZE: usize = SIZE;
 }
 
-impl GraphicsWriter<u8> for Graphics320x200x256 {
+impl GraphicsWriter<u8> for Graphics320x240x256 {
     fn clear_screen(&self, color: u8) {
+        let frame_buffer = self.get_frame_buffer();
+        VGA.lock()
+            .sequencer_registers
+            .set_plane_mask(PlaneMask::ALL_PLANES);
         unsafe {
-            self.get_frame_buffer().write_bytes(color, Self::SIZE);
+            frame_buffer.write_bytes(color, Self::SIZE);
         }
     }
     fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u8) {
@@ -53,9 +58,14 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
         }
     }
     fn set_pixel(&self, x: usize, y: usize, color: u8) {
-        let offset = (y * WIDTH) + x;
+        let frame_buffer = self.get_frame_buffer();
         unsafe {
-            self.get_frame_buffer().add(offset).write_volatile(color);
+            let offset = (WIDTH * y + x) / 4;
+            let plane_mask = 0x1 << (x & 3);
+            VGA.lock()
+                .sequencer_registers
+                .set_plane_mask(PlaneMask::from_bits(plane_mask).unwrap());
+            frame_buffer.add(offset).write_volatile(color);
         }
     }
     fn draw_character(&self, x: usize, y: usize, character: char, color: u8) {
@@ -76,7 +86,7 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
     }
     fn set_mode(&self) {
         let mut vga = VGA.lock();
-        vga.set_video_mode(VideoMode::Mode320x200x256);
+        vga.set_video_mode(VideoMode::Mode320x240x256);
 
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
@@ -84,9 +94,9 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
     }
 }
 
-impl Graphics320x200x256 {
-    /// Creates a new `Graphics320x200x256`.
-    pub const fn new() -> Graphics320x200x256 {
-        Graphics320x200x256
+impl Graphics320x240x256 {
+    /// Creates a new `Graphics320x240x256`.
+    pub const fn new() -> Graphics320x240x256 {
+        Graphics320x240x256
     }
 }

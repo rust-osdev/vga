@@ -1,5 +1,6 @@
 //! Writers for common vga modes.
 mod graphics_320x200x256;
+mod graphics_320x240x256;
 mod graphics_640x480x16;
 mod text_40x25;
 mod text_40x50;
@@ -14,6 +15,7 @@ use super::{
 use spinning_top::SpinlockGuard;
 
 pub use graphics_320x200x256::Graphics320x200x256;
+pub use graphics_320x240x256::Graphics320x240x256;
 pub use graphics_640x480x16::Graphics640x480x16;
 pub use text_40x25::Text40x25;
 pub use text_40x50::Text40x50;
@@ -197,4 +199,8 @@ pub trait GraphicsWriter<Color> {
     fn set_pixel(&self, x: usize, y: usize, color: Color);
     /// Sets the graphics device to a `VideoMode`.
     fn set_mode(&self);
+    /// Returns the frame buffer for this vga mode.
+    fn get_frame_buffer(&self) -> *mut u8 {
+        u32::from(VGA.lock().get_frame_buffer()) as *mut u8
+    }
 }
