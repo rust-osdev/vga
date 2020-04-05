@@ -44,10 +44,8 @@ impl Screen for Graphics320x200x256 {
 
 impl GraphicsWriter<u8> for Graphics320x200x256 {
     fn clear_screen(&self, color: u8) {
-        for x in 0..WIDTH {
-            for y in 0..HEIGHT {
-                self.set_pixel(x, y, color);
-            }
+        unsafe {
+            self.get_frame_buffer().write_bytes(color, Self::SIZE);
         }
     }
     fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u8) {
@@ -56,10 +54,9 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
         }
     }
     fn set_pixel(&self, x: usize, y: usize, color: u8) {
-        let (_vga, frame_buffer) = self.get_frame_buffer();
         let offset = (y * WIDTH) + x;
         unsafe {
-            frame_buffer.add(offset).write_volatile(color);
+            self.get_frame_buffer().add(offset).write_volatile(color);
         }
     }
     fn draw_character(&self, x: usize, y: usize, character: char, color: u8) {
@@ -92,14 +89,5 @@ impl Graphics320x200x256 {
     /// Creates a new `Graphics320x200x256`.
     pub const fn new() -> Graphics320x200x256 {
         Graphics320x200x256
-    }
-
-    /// Returns the start of the `FrameBuffer` as `*mut u8` as
-    /// well as a lock to the vga driver. This ensures the vga
-    /// driver stays locked while the frame buffer is in use.
-    fn get_frame_buffer(self) -> (SpinlockGuard<'static, Vga>, *mut u8) {
-        let mut vga = VGA.lock();
-        let frame_buffer = vga.get_frame_buffer();
-        (vga, u32::from(frame_buffer) as *mut u8)
     }
 }
