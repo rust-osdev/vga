@@ -3,10 +3,9 @@ use crate::{
     colors::DEFAULT_PALETTE,
     drawing::{Bresenham, Point},
     registers::PlaneMask,
-    vga::{Vga, VideoMode, VGA},
+    vga::{VideoMode, VGA},
 };
 use font8x8::UnicodeFonts;
-use spinning_top::SpinlockGuard;
 
 const WIDTH: usize = 320;
 const HEIGHT: usize = 200;
