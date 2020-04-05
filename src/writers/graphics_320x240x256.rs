@@ -8,7 +8,7 @@ use crate::{
 use font8x8::UnicodeFonts;
 
 const WIDTH: usize = 320;
-const HEIGHT: usize = 200;
+const HEIGHT: usize = 240;
 const SIZE: usize = (WIDTH * HEIGHT) / 4;
 
 #[derive(Debug, Clone, Copy, Default)]
