@@ -96,7 +96,7 @@ impl SequencerRegisters {
 
     /// Sets the plane mask of the sequencer controller, as specified by `plane_mask`.
     pub fn set_plane_mask(&mut self, plane_mask: PlaneMask) {
-        let original_value = self.read(SequencerIndex::PlaneMask);
+        let original_value = self.read(SequencerIndex::PlaneMask) & 0xF0;
         self.write(
             SequencerIndex::PlaneMask,
             original_value | u8::from(plane_mask),

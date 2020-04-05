@@ -2,8 +2,9 @@
 
 use super::{
     configurations::{
-        VgaConfiguration, MODE_320X200X256_CONFIGURATION, MODE_40X25_CONFIGURATION,
-        MODE_40X50_CONFIGURATION, MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
+        VgaConfiguration, MODE_320X200X256_CONFIGURATION, MODE_320X240X256_CONFIGURATION,
+        MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION, MODE_640X480X16_CONFIGURATION,
+        MODE_80X25_CONFIGURATION,
     },
     fonts::VgaFont,
     registers::{
@@ -59,6 +60,8 @@ pub enum VideoMode {
     Mode80x25,
     /// Represents graphics mode 320x200x256.
     Mode320x200x256,
+    /// Represents graphics mode 320x240x256.
+    Mode320x240x256,
     /// Represents graphics mode 640x480x16.
     Mode640x480x16,
 }
@@ -101,6 +104,7 @@ impl Vga {
             VideoMode::Mode40x50 => self.set_video_mode_40x50(),
             VideoMode::Mode80x25 => self.set_video_mode_80x25(),
             VideoMode::Mode320x200x256 => self.set_video_mode_320x200x256(),
+            VideoMode::Mode320x240x256 => self.set_video_mode_320x240x256(),
             VideoMode::Mode640x480x16 => self.set_video_mode_640x480x16(),
         }
     }
@@ -273,6 +277,12 @@ impl Vga {
     fn set_video_mode_320x200x256(&mut self) {
         self.set_registers(&MODE_320X200X256_CONFIGURATION);
         self.most_recent_video_mode = Some(VideoMode::Mode320x200x256);
+    }
+
+    /// Sets the video card to Mode 320x200x256x.
+    fn set_video_mode_320x240x256(&mut self) {
+        self.set_registers(&MODE_320X240X256_CONFIGURATION);
+        self.most_recent_video_mode = Some(VideoMode::Mode320x240x256);
     }
 
     /// Sets the video card to Mode 640x480x16.
