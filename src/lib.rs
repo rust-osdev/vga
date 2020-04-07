@@ -9,6 +9,7 @@
 
 pub mod colors;
 pub mod configurations;
+pub mod devices;
 pub mod drawing;
 pub mod fonts;
 pub mod registers;
