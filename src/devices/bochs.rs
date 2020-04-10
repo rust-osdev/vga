@@ -10,7 +10,49 @@ const VBE_DISPI_INDEX_YRES: u16 = 0x02;
 const VBE_DISPI_INDEX_BPP: u16 = 0x03;
 const VBE_DISPI_INDEX_ENABLE: u16 = 0x04;
 
+const VBE_DISPI_DISABLED: u16 = 0x00;
+const VBE_DISPI_ENABLED: u16 = 0x01;
 const VBE_DISPI_GETCAPS: u16 = 0x02;
+const VBE_DISPI_LFB_ENABLED: u16 = 0x40;
+const VBE_DISPI_NOCLEARMEM: u16 = 0x80;
+
+#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
+pub enum BitsPerPixel {
+    Bpp4 = 0x04,
+    Bpp8 = 0x08,
+    Bpp15 = 0x0F,
+    Bpp16 = 0x10,
+    Bpp24 = 0x18,
+    Bpp32 = 0x20,
+}
+
+impl From<u16> for BitsPerPixel {
+    fn from(value: u16) -> BitsPerPixel {
+        match value {
+            0x04 => BitsPerPixel::Bpp4,
+            0x08 => BitsPerPixel::Bpp8,
+            0x0F => BitsPerPixel::Bpp15,
+            0x10 => BitsPerPixel::Bpp16,
+            0x18 => BitsPerPixel::Bpp24,
+            0x20 => BitsPerPixel::Bpp32,
+            _ => panic!("invalid bits per pixel value: {}", value),
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Mode {
+    width: u16,
+    height: u16,
+    bpp: BitsPerPixel,
+}
+
+impl Mode {
+    pub const fn new(width: u16, height: u16, bpp: BitsPerPixel) -> Mode {
+        Mode { width, height, bpp }
+    }
+}
 
 #[derive(Debug, Copy, Clone)]
 pub struct Capabilities {
@@ -71,6 +113,78 @@ impl BochsDevice {
             self.data_port.write(original_value);
 
             Capabilities { width, height, bpp }
+        }
+    }
+
+    fn disable_display(&mut self) {
+        unsafe {
+            self.index_port.write(VBE_DISPI_INDEX_ENABLE);
+            self.data_port.write(VBE_DISPI_DISABLED);
+        }
+    }
+
+    fn enable_display(&mut self) {
+        unsafe {
+            self.index_port.write(VBE_DISPI_INDEX_ENABLE);
+            self.data_port
+                .write(VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED | VBE_DISPI_NOCLEARMEM);
+        }
+    }
+
+    pub fn get_mode(&mut self) -> Mode {
+        let width = self.get_width();
+        let height = self.get_height();
+        let bpp = self.get_bpp();
+        Mode { width, height, bpp }
+    }
+
+    pub fn set_mode(&mut self, mode: Mode) {
+        self.disable_display();
+        self.set_width(mode.width);
+        self.set_height(mode.height);
+        self.set_bpp(mode.bpp);
+        self.enable_display();
+    }
+
+    pub fn get_width(&mut self) -> u16 {
+        unsafe {
+            self.index_port.write(VBE_DISPI_INDEX_XRES);
+            self.data_port.read()
+        }
+    }
+
+    pub fn get_height(&mut self) -> u16 {
+        unsafe {
+            self.index_port.write(VBE_DISPI_INDEX_YRES);
+            self.data_port.read()
+        }
+    }
+
+    pub fn get_bpp(&mut self) -> BitsPerPixel {
+        unsafe {
+            self.index_port.write(VBE_DISPI_INDEX_BPP);
+            BitsPerPixel::from(self.data_port.read())
+        }
+    }
+
+    pub fn set_width(&mut self, width: u16) {
+        unsafe {
+            self.index_port.write(VBE_DISPI_INDEX_XRES);
+            self.data_port.write(width);
+        }
+    }
+
+    pub fn set_height(&mut self, height: u16) {
+        unsafe {
+            self.index_port.write(VBE_DISPI_INDEX_YRES);
+            self.data_port.write(height);
+        }
+    }
+
+    pub fn set_bpp(&mut self, bpp: BitsPerPixel) {
+        unsafe {
+            self.index_port.write(VBE_DISPI_INDEX_BPP);
+            self.data_port.write(bpp as u16);
         }
     }
 }
