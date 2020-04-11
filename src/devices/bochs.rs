@@ -66,6 +66,8 @@ pub struct BochsDevice {
     index_port: Port<u16>,
     data_port: Port<u16>,
     pci_device: PciDevice,
+    physical_address: u32,
+    virtual_address: u64,
 }
 
 impl BochsDevice {
@@ -73,20 +75,28 @@ impl BochsDevice {
         if let Some(pci_device) = find_pci_device(BOCHS_ID) {
             let index_port = Port::new(BOCHS_INDEX_PORT_ADDRESS);
             let data_port = Port::new(BOCHS_DATA_PORT_ADDRESS);
+            let physical_address = match pci_device.pci_header {
+                PciHeader::PciHeaderType0 { base_addresses, .. } => base_addresses[0] & 0xFFFF_FFF0,
+            };
+            let virtual_address = physical_address as u64;
             Some(BochsDevice {
                 pci_device,
                 index_port,
                 data_port,
+                physical_address,
+                virtual_address,
             })
         } else {
             None
         }
     }
 
-    pub fn base_address(&self) -> u32 {
-        match self.pci_device.pci_header {
-            PciHeader::PciHeaderType0 { base_addresses, .. } => base_addresses[0] & 0xFFFF_FFF0,
-        }
+    pub fn physical_address(&self) -> u32 {
+        self.physical_address
+    }
+
+    pub fn virtual_address(&self) -> u64 {
+        self.virtual_address
     }
 
     pub fn capabilities(&mut self) -> Capabilities {
@@ -167,21 +177,21 @@ impl BochsDevice {
         }
     }
 
-    pub fn set_width(&mut self, width: u16) {
+    fn set_width(&mut self, width: u16) {
         unsafe {
             self.index_port.write(VBE_DISPI_INDEX_XRES);
             self.data_port.write(width);
         }
     }
 
-    pub fn set_height(&mut self, height: u16) {
+    fn set_height(&mut self, height: u16) {
         unsafe {
             self.index_port.write(VBE_DISPI_INDEX_YRES);
             self.data_port.write(height);
         }
     }
 
-    pub fn set_bpp(&mut self, bpp: BitsPerPixel) {
+    fn set_bpp(&mut self, bpp: BitsPerPixel) {
         unsafe {
             self.index_port.write(VBE_DISPI_INDEX_BPP);
             self.data_port.write(bpp as u16);
