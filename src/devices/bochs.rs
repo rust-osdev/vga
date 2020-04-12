@@ -1,5 +1,5 @@
 use super::pci::{find_pci_device, PciDevice, PciHeader};
-use x86_64::instructions::port::Port;
+use x86_64::{instructions::port::Port, PhysAddr, VirtAddr};
 
 const BOCHS_ID: u32 = 0x1111_1234;
 const BOCHS_INDEX_PORT_ADDRESS: u16 = 0x01CE;
@@ -14,7 +14,6 @@ const VBE_DISPI_DISABLED: u16 = 0x00;
 const VBE_DISPI_ENABLED: u16 = 0x01;
 const VBE_DISPI_GETCAPS: u16 = 0x02;
 const VBE_DISPI_LFB_ENABLED: u16 = 0x40;
-const VBE_DISPI_NOCLEARMEM: u16 = 0x80;
 
 #[derive(Debug, Copy, Clone)]
 #[repr(u8)]
@@ -66,8 +65,8 @@ pub struct BochsDevice {
     index_port: Port<u16>,
     data_port: Port<u16>,
     pci_device: PciDevice,
-    physical_address: u32,
-    virtual_address: u64,
+    physical_address: PhysAddr,
+    virtual_address: VirtAddr,
 }
 
 impl BochsDevice {
@@ -75,10 +74,11 @@ impl BochsDevice {
         if let Some(pci_device) = find_pci_device(BOCHS_ID) {
             let index_port = Port::new(BOCHS_INDEX_PORT_ADDRESS);
             let data_port = Port::new(BOCHS_DATA_PORT_ADDRESS);
-            let physical_address = match pci_device.pci_header {
+            let base_address = match pci_device.pci_header {
                 PciHeader::PciHeaderType0 { base_addresses, .. } => base_addresses[0] & 0xFFFF_FFF0,
             };
-            let virtual_address = physical_address as u64;
+            let physical_address = PhysAddr::new(base_address as u64);
+            let virtual_address = VirtAddr::new(base_address as u64);
             Some(BochsDevice {
                 pci_device,
                 index_port,
@@ -91,12 +91,16 @@ impl BochsDevice {
         }
     }
 
-    pub fn physical_address(&self) -> u32 {
+    pub fn physical_address(&self) -> PhysAddr {
         self.physical_address
     }
 
-    pub fn virtual_address(&self) -> u64 {
+    pub fn virtual_address(&self) -> VirtAddr {
         self.virtual_address
+    }
+
+    pub fn set_virtual_address(&mut self, virtual_address: VirtAddr) {
+        self.virtual_address = virtual_address;
     }
 
     pub fn capabilities(&mut self) -> Capabilities {
@@ -137,7 +141,7 @@ impl BochsDevice {
         unsafe {
             self.index_port.write(VBE_DISPI_INDEX_ENABLE);
             self.data_port
-                .write(VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED | VBE_DISPI_NOCLEARMEM);
+                .write(VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);
         }
     }
 
