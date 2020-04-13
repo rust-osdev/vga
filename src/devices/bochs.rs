@@ -113,6 +113,17 @@ impl BochsDevice {
         }
     }
 
+    pub fn draw_rectangle(&self, rectangle: &Rectangle, color: u32) {
+        let p1 = (rectangle.left as isize, rectangle.top as isize);
+        let p2 = (rectangle.left as isize, rectangle.bottom as isize);
+        let p3 = (rectangle.right as isize, rectangle.bottom as isize);
+        let p4 = (rectangle.right as isize, rectangle.top as isize);
+        self.draw_line(p1, p2, color);
+        self.draw_line(p2, p3, color);
+        self.draw_line(p3, p4, color);
+        self.draw_line(p4, p1, color);
+    }
+
     pub fn fill_rectangle(&self, rectangle: &Rectangle, color: u32) {
         for y in rectangle.top..rectangle.bottom {
             for x in rectangle.left..rectangle.right {
