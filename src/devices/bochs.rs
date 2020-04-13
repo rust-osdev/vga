@@ -1,5 +1,5 @@
 use super::pci::{find_pci_device, PciDevice, PciHeader};
-use crate::writers::GraphicsWriter;
+use crate::drawing::{Bresenham, Point, Rectangle};
 use x86_64::{instructions::port::Port, PhysAddr, VirtAddr};
 
 const BOCHS_ID: u32 = 0x1111_1234;
@@ -17,23 +17,16 @@ const VBE_DISPI_GETCAPS: u16 = 0x02;
 const VBE_DISPI_LFB_ENABLED: u16 = 0x40;
 const VBE_DISPI_BPP_32: u16 = 0x20;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Resolution {
-    width: u16,
-    height: u16,
+    width: usize,
+    height: usize,
 }
 
 impl Resolution {
-    pub fn new(width: u16, height: u16) -> Resolution {
+    pub fn new(width: usize, height: usize) -> Resolution {
         Resolution { width, height }
     }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Capabilities {
-    width: u16,
-    height: u16,
-    bpp: u16,
 }
 
 #[derive(Debug)]
@@ -43,6 +36,7 @@ pub struct BochsDevice {
     pci_device: PciDevice,
     physical_address: PhysAddr,
     virtual_address: VirtAddr,
+    current_resolution: Resolution,
 }
 
 impl BochsDevice {
@@ -61,6 +55,7 @@ impl BochsDevice {
                 data_port,
                 physical_address,
                 virtual_address,
+                current_resolution: Resolution::default(),
             })
         } else {
             None
@@ -79,7 +74,7 @@ impl BochsDevice {
         self.virtual_address = virtual_address;
     }
 
-    pub fn capabilities(&mut self) -> Capabilities {
+    pub fn capabilities(&mut self) -> Resolution {
         unsafe {
             // Save original value of VBE_DISPI_INDEX_ENABLE
             self.index_port.write(VBE_DISPI_INDEX_ENABLE);
@@ -88,21 +83,51 @@ impl BochsDevice {
 
             // Read max width
             self.index_port.write(VBE_DISPI_INDEX_XRES);
-            let width = self.data_port.read();
+            let width = self.data_port.read() as usize;
 
             // Read max height
             self.index_port.write(VBE_DISPI_INDEX_YRES);
-            let height = self.data_port.read();
-
-            // Read max bpp
-            self.index_port.write(VBE_DISPI_INDEX_BPP);
-            let bpp = self.data_port.read();
+            let height = self.data_port.read() as usize;
 
             // Restore original VBE_DISPI_INDEX_ENABLE
             self.index_port.write(VBE_DISPI_INDEX_ENABLE);
             self.data_port.write(original_value);
 
-            Capabilities { width, height, bpp }
+            Resolution { width, height }
+        }
+    }
+
+    pub fn clear_screen(&self, color: u32) {
+        let screen_size = self.current_resolution.width * self.current_resolution.height;
+        let frame_buffer = self.virtual_address.as_mut_ptr::<u32>();
+        for offset in 0..screen_size {
+            unsafe {
+                frame_buffer.add(offset).write_volatile(color);
+            }
+        }
+    }
+
+    pub fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u32) {
+        for (x, y) in Bresenham::new(start, end) {
+            self.set_pixel(x as usize, y as usize, color);
+        }
+    }
+
+    pub fn fill_rectangle(&self, rectangle: &Rectangle, color: u32) {
+        for y in rectangle.top..rectangle.bottom {
+            for x in rectangle.left..rectangle.right {
+                self.set_pixel(x, y, color);
+            }
+        }
+    }
+
+    pub fn set_pixel(&self, x: usize, y: usize, color: u32) {
+        let offset = (y * self.current_resolution.width) + x;
+        unsafe {
+            self.virtual_address
+                .as_mut_ptr::<u32>()
+                .add(offset)
+                .write_volatile(color);
         }
     }
 
@@ -133,33 +158,34 @@ impl BochsDevice {
         self.set_height(resolution.height);
         self.set_bpp();
         self.enable_display();
+        self.current_resolution = resolution;
     }
 
-    pub fn get_width(&mut self) -> u16 {
+    pub fn get_width(&mut self) -> usize {
         unsafe {
             self.index_port.write(VBE_DISPI_INDEX_XRES);
-            self.data_port.read()
+            self.data_port.read() as usize
         }
     }
 
-    pub fn get_height(&mut self) -> u16 {
+    pub fn get_height(&mut self) -> usize {
         unsafe {
             self.index_port.write(VBE_DISPI_INDEX_YRES);
-            self.data_port.read()
+            self.data_port.read() as usize
         }
     }
 
-    fn set_width(&mut self, width: u16) {
+    fn set_width(&mut self, width: usize) {
         unsafe {
             self.index_port.write(VBE_DISPI_INDEX_XRES);
-            self.data_port.write(width);
+            self.data_port.write(width as u16);
         }
     }
 
-    fn set_height(&mut self, height: u16) {
+    fn set_height(&mut self, height: usize) {
         unsafe {
             self.index_port.write(VBE_DISPI_INDEX_YRES);
-            self.data_port.write(height);
+            self.data_port.write(height as u16);
         }
     }
 
