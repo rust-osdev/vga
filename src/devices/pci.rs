@@ -21,23 +21,16 @@ pub(crate) struct PciDevice {
     latency_timer: u8,
     header_type: u8,
     bist: u8,
-    pub(crate) pci_header: PciHeader,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub(crate) enum PciHeader {
-    PciHeaderType0 {
-        base_addresses: [u32; 6],
-        cis: u32,
-        sub_vendor_id: u16,
-        sub_system_id: u16,
-        rom_base_address: u32,
-        reserved_2: [u32; 2],
-        interrupt_line: u8,
-        interrupt_pin: u8,
-        minimum_grant: u8,
-        maximum_latency: u8,
-    },
+    pub(crate) base_addresses: [u32; 6],
+    cis: u32,
+    sub_vendor_id: u16,
+    sub_system_id: u16,
+    rom_base_address: u32,
+    reserved_2: [u32; 2],
+    interrupt_line: u8,
+    interrupt_pin: u8,
+    minimum_grant: u8,
+    maximum_latency: u8,
 }
 
 pub(crate) fn find_pci_device(device_id: u32) -> Option<PciDevice> {
@@ -59,26 +52,6 @@ fn read_device(address: u32) -> PciDevice {
     let (status, command) = read_2_words(address, 0x04);
     let (base_class, sub_class, prog_if, revision_id) = read_4_bytes(address, 0x08);
     let (bist, header_type, latency_timer, cache_line_size) = read_4_bytes(address, 0x0C);
-    let pci_header = read_header_type_0(address);
-
-    PciDevice {
-        vendor_id,
-        device_id,
-        status,
-        command,
-        base_class,
-        sub_class,
-        prog_if,
-        revision_id,
-        bist,
-        header_type,
-        latency_timer,
-        cache_line_size,
-        pci_header,
-    }
-}
-
-fn read_header_type_0(address: u32) -> PciHeader {
     let mut base_addresses = [0u32; 6];
     base_addresses[0] = read_offset(address, 0x10);
     base_addresses[1] = read_offset(address, 0x14);
@@ -95,7 +68,19 @@ fn read_header_type_0(address: u32) -> PciHeader {
     let (maximum_latency, minimum_grant, interrupt_pin, interrupt_line) =
         read_4_bytes(address, 0x3C);
 
-    PciHeader::PciHeaderType0 {
+    PciDevice {
+        vendor_id,
+        device_id,
+        status,
+        command,
+        base_class,
+        sub_class,
+        prog_if,
+        revision_id,
+        bist,
+        header_type,
+        latency_timer,
+        cache_line_size,
         base_addresses,
         cis,
         sub_system_id,
