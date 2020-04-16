@@ -200,7 +200,5 @@ pub trait GraphicsWriter<Color> {
     /// Sets the graphics device to a `VideoMode`.
     fn set_mode(&self);
     /// Returns the frame buffer for this vga mode.
-    fn get_frame_buffer(&self) -> *mut u8 {
-        u32::from(VGA.lock().get_frame_buffer()) as *mut u8
-    }
+    fn get_frame_buffer<T>(&self) -> *mut T;
 }
