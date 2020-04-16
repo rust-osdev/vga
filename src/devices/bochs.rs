@@ -1,5 +1,9 @@
 use super::pci::{find_pci_device, PciDevice};
-use crate::drawing::{Bresenham, Point, Rectangle};
+use crate::{
+    drawing::{Bresenham, Point, Rectangle},
+    writers::GraphicsWriter,
+};
+use font8x8::UnicodeFonts;
 use x86_64::{instructions::port::Port, PhysAddr, VirtAddr};
 
 const BOCHS_ID: u32 = 0x1111_1234;
@@ -100,24 +104,6 @@ impl BochsDevice {
         }
     }
 
-    /// Clears the screen using the given `color`.
-    pub fn clear_screen(&self, color: u32) {
-        let screen_size = self.current_resolution.width * self.current_resolution.height;
-        let frame_buffer = self.virtual_address.as_mut_ptr::<u32>();
-        for offset in 0..screen_size {
-            unsafe {
-                frame_buffer.add(offset).write_volatile(color);
-            }
-        }
-    }
-
-    /// Draws a line from the given `start` to `end` using the given `color`.
-    pub fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u32) {
-        for (x, y) in Bresenham::new(start, end) {
-            self.set_pixel(x as usize, y as usize, color);
-        }
-    }
-
     /// Draws a rectangle using the given `rectangle` and `color`.
     pub fn draw_rectangle(&self, rectangle: &Rectangle, color: u32) {
         let p1 = (rectangle.left as isize, rectangle.top as isize);
@@ -134,19 +120,8 @@ impl BochsDevice {
     pub fn fill_rectangle(&self, rectangle: &Rectangle, color: u32) {
         for y in rectangle.top..rectangle.bottom {
             for x in rectangle.left..rectangle.right {
-                self.set_pixel(x, y, color);
+                self.set_pixel(x as usize, y as usize, color);
             }
-        }
-    }
-
-    /// Sets the pixel at `(x, y)` to the given `color`.
-    pub fn set_pixel(&self, x: usize, y: usize, color: u32) {
-        let offset = (y * self.current_resolution.width) + x;
-        unsafe {
-            self.virtual_address
-                .as_mut_ptr::<u32>()
-                .add(offset)
-                .write_volatile(color);
         }
     }
 
@@ -215,5 +190,50 @@ impl BochsDevice {
             self.index_port.write(VBE_DISPI_INDEX_BPP);
             self.data_port.write(VBE_DISPI_BPP_32);
         }
+    }
+}
+
+impl GraphicsWriter<u32> for BochsDevice {
+    fn clear_screen(&self, color: u32) {
+        let screen_size = self.current_resolution.width * self.current_resolution.height;
+        let frame_buffer = self.virtual_address.as_mut_ptr::<u32>();
+        for offset in 0..screen_size {
+            unsafe {
+                frame_buffer.add(offset).write_volatile(color);
+            }
+        }
+    }
+    fn draw_character(&self, x: usize, y: usize, character: char, color: u32) {
+        let character = match font8x8::BASIC_FONTS.get(character) {
+            Some(character) => character,
+            // Default to a filled block if the character isn't found
+            None => font8x8::unicode::BLOCK_UNICODE[8].byte_array(),
+        };
+
+        for (row, byte) in character.iter().enumerate() {
+            for bit in 0..8 {
+                match *byte & 1 << bit {
+                    0 => (),
+                    _ => self.set_pixel(x + bit, y + row, color),
+                }
+            }
+        }
+    }
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u32) {
+        for (x, y) in Bresenham::new(start, end) {
+            self.set_pixel(x as usize, y as usize, color);
+        }
+    }
+    fn set_pixel(&self, x: usize, y: usize, color: u32) {
+        let offset = (y * self.current_resolution.width) + x;
+        unsafe {
+            self.virtual_address
+                .as_mut_ptr::<u32>()
+                .add(offset)
+                .write_volatile(color);
+        }
+    }
+    fn get_frame_buffer<T>(&self) -> *mut T {
+        self.virtual_address.as_mut_ptr()
     }
 }

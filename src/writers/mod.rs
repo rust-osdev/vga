@@ -197,8 +197,6 @@ pub trait GraphicsWriter<Color> {
     fn draw_character(&self, x: usize, y: usize, character: char, color: Color);
     /// Sets the given pixel at `(x, y)` to the given `color`.
     fn set_pixel(&self, x: usize, y: usize, color: Color);
-    /// Sets the graphics device to a `VideoMode`.
-    fn set_mode(&self);
     /// Returns the frame buffer for this vga mode.
     fn get_frame_buffer<T>(&self) -> *mut T;
 }
