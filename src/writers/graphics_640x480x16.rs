@@ -89,22 +89,20 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
     fn get_frame_buffer(&self) -> *mut Color16 {
         u32::from(VGA.lock().get_frame_buffer()) as *mut Color16
     }
-}
-
-impl Graphics640x480x16 {
-    /// Creates a new `Graphics640x480x16`.
-    pub const fn new() -> Graphics640x480x16 {
-        Graphics640x480x16
-    }
-
-    /// Sets the graphics device to a `VideoMode`.
-    pub fn set_mode(&self) {
+    fn set_mode(&mut self) {
         let mut vga = VGA.lock();
         vga.set_video_mode(VideoMode::Mode640x480x16);
 
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
         vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
+    }
+}
+
+impl Graphics640x480x16 {
+    /// Creates a new `Graphics640x480x16`.
+    pub const fn new() -> Graphics640x480x16 {
+        Graphics640x480x16
     }
 
     fn set_write_mode_0(self, color: Color16) {

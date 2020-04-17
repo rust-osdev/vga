@@ -77,21 +77,19 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
     fn get_frame_buffer(&self) -> *mut u8 {
         u32::from(VGA.lock().get_frame_buffer()) as *mut u8
     }
-}
-
-impl Graphics320x200x256 {
-    /// Creates a new `Graphics320x200x256`.
-    pub const fn new() -> Graphics320x200x256 {
-        Graphics320x200x256
-    }
-
-    /// Sets the graphics device to a `VideoMode`.
-    pub fn set_mode(&self) {
+    fn set_mode(&mut self) {
         let mut vga = VGA.lock();
         vga.set_video_mode(VideoMode::Mode320x200x256);
 
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
         vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
+    }
+}
+
+impl Graphics320x200x256 {
+    /// Creates a new `Graphics320x200x256`.
+    pub const fn new() -> Graphics320x200x256 {
+        Graphics320x200x256
     }
 }

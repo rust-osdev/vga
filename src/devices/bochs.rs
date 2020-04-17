@@ -40,24 +40,25 @@ pub struct BochsDevice {
     pci_device: PciDevice,
     physical_address: PhysAddr,
     virtual_address: VirtAddr,
-    current_resolution: Resolution,
+    resolution: Resolution,
 }
 
 impl BochsDevice {
-    pub fn new() -> BochsDevice {
+    pub fn new(width: usize, height: usize) -> BochsDevice {
         let pci_device = find_pci_device(BOCHS_ID).expect("no bochs device found");
         let index_port = Port::new(BOCHS_INDEX_PORT_ADDRESS);
         let data_port = Port::new(BOCHS_DATA_PORT_ADDRESS);
         let base_address = pci_device.base_addresses[0] & 0xFFFF_FFF0;
         let physical_address = PhysAddr::new(base_address as u64);
         let virtual_address = VirtAddr::new(base_address as u64);
+        let resolution = Resolution::new(width, height);
         BochsDevice {
             pci_device,
             index_port,
             data_port,
             physical_address,
             virtual_address,
-            current_resolution: Resolution::default(),
+            resolution,
         }
     }
 
@@ -149,12 +150,7 @@ impl BochsDevice {
 
     /// Sets the `BochsDevice` to the given `resolution`.
     pub fn set_resolution(&mut self, resolution: Resolution) {
-        self.disable_display();
-        self.set_width(resolution.width);
-        self.set_height(resolution.height);
-        self.set_bpp();
-        self.enable_display();
-        self.current_resolution = resolution;
+        self.resolution = resolution;
     }
 
     fn get_width(&mut self) -> usize {
@@ -195,7 +191,7 @@ impl BochsDevice {
 
 impl GraphicsWriter<u32> for BochsDevice {
     fn clear_screen(&self, color: u32) {
-        let screen_size = self.current_resolution.width * self.current_resolution.height;
+        let screen_size = self.resolution.width * self.resolution.height;
         let frame_buffer = self.virtual_address.as_mut_ptr::<u32>();
         for offset in 0..screen_size {
             unsafe {
@@ -225,7 +221,7 @@ impl GraphicsWriter<u32> for BochsDevice {
         }
     }
     fn set_pixel(&self, x: usize, y: usize, color: u32) {
-        let offset = (y * self.current_resolution.width) + x;
+        let offset = (y * self.resolution.width) + x;
         unsafe {
             self.virtual_address
                 .as_mut_ptr::<u32>()
@@ -235,5 +231,12 @@ impl GraphicsWriter<u32> for BochsDevice {
     }
     fn get_frame_buffer(&self) -> *mut u32 {
         self.virtual_address.as_mut_ptr()
+    }
+    fn set_mode(&mut self) {
+        self.disable_display();
+        self.set_width(self.resolution.width);
+        self.set_height(self.resolution.height);
+        self.set_bpp();
+        self.enable_display();
     }
 }

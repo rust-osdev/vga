@@ -199,4 +199,6 @@ pub trait GraphicsWriter<Color> {
     fn set_pixel(&self, x: usize, y: usize, color: Color);
     /// Returns the frame buffer for this vga mode.
     fn get_frame_buffer(&self) -> *mut Color;
+    /// Sets the graphics device to a `VideoMode`.
+    fn set_mode(&mut self);
 }
