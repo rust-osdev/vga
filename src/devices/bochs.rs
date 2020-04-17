@@ -233,7 +233,7 @@ impl GraphicsWriter<u32> for BochsDevice {
                 .write_volatile(color);
         }
     }
-    fn get_frame_buffer<T>(&self) -> *mut T {
+    fn get_frame_buffer(&self) -> *mut u32 {
         self.virtual_address.as_mut_ptr()
     }
 }

@@ -44,7 +44,7 @@ impl Screen for Graphics320x240x256 {
 
 impl GraphicsWriter<u8> for Graphics320x240x256 {
     fn clear_screen(&self, color: u8) {
-        let frame_buffer = self.get_frame_buffer::<u8>();
+        let frame_buffer = self.get_frame_buffer();
         VGA.lock()
             .sequencer_registers
             .set_plane_mask(PlaneMask::ALL_PLANES);
@@ -58,7 +58,7 @@ impl GraphicsWriter<u8> for Graphics320x240x256 {
         }
     }
     fn set_pixel(&self, x: usize, y: usize, color: u8) {
-        let frame_buffer = self.get_frame_buffer::<u8>();
+        let frame_buffer = self.get_frame_buffer();
         unsafe {
             let offset = (WIDTH * y + x) / 4;
             let plane_mask = 0x1 << (x & 3);
@@ -84,8 +84,8 @@ impl GraphicsWriter<u8> for Graphics320x240x256 {
             }
         }
     }
-    fn get_frame_buffer<T>(&self) -> *mut T {
-        u32::from(VGA.lock().get_frame_buffer()) as *mut T
+    fn get_frame_buffer(&self) -> *mut u8 {
+        u32::from(VGA.lock().get_frame_buffer()) as *mut u8
     }
 }
 

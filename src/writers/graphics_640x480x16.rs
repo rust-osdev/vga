@@ -47,7 +47,7 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
     fn clear_screen(&self, color: Color16) {
         self.set_write_mode_2();
         unsafe {
-            self.get_frame_buffer::<u8>()
+            self.get_frame_buffer()
                 .write_bytes(u8::from(color), Self::SIZE);
         }
     }
@@ -86,8 +86,8 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
         self._set_pixel(x, y, color);
     }
 
-    fn get_frame_buffer<T>(&self) -> *mut T {
-        u32::from(VGA.lock().get_frame_buffer()) as *mut T
+    fn get_frame_buffer(&self) -> *mut Color16 {
+        u32::from(VGA.lock().get_frame_buffer()) as *mut Color16
     }
 }
 
@@ -127,7 +127,7 @@ impl Graphics640x480x16 {
 
     #[inline]
     fn _set_pixel(self, x: usize, y: usize, color: Color16) {
-        let frame_buffer = self.get_frame_buffer::<u8>();
+        let frame_buffer = self.get_frame_buffer();
         let offset = x / 8 + y * WIDTH_IN_BYTES;
         let pixel_mask = 0x80 >> (x & 0x07);
         VGA.lock()
@@ -135,7 +135,7 @@ impl Graphics640x480x16 {
             .set_bit_mask(pixel_mask);
         unsafe {
             frame_buffer.add(offset).read_volatile();
-            frame_buffer.add(offset).write_volatile(u8::from(color));
+            frame_buffer.add(offset).write_volatile(color);
         }
     }
 }
