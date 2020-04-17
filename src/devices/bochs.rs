@@ -105,27 +105,6 @@ impl BochsDevice {
         }
     }
 
-    /// Draws a rectangle using the given `rectangle` and `color`.
-    pub fn draw_rectangle(&self, rectangle: &Rectangle, color: u32) {
-        let p1 = (rectangle.left as isize, rectangle.top as isize);
-        let p2 = (rectangle.left as isize, rectangle.bottom as isize);
-        let p3 = (rectangle.right as isize, rectangle.bottom as isize);
-        let p4 = (rectangle.right as isize, rectangle.top as isize);
-        self.draw_line(p1, p2, color);
-        self.draw_line(p2, p3, color);
-        self.draw_line(p3, p4, color);
-        self.draw_line(p4, p1, color);
-    }
-
-    /// Draws a filled rectangle using the given `rectangle` and `color`.
-    pub fn fill_rectangle(&self, rectangle: &Rectangle, color: u32) {
-        for y in rectangle.top..rectangle.bottom {
-            for x in rectangle.left..rectangle.right {
-                self.set_pixel(x as usize, y as usize, color);
-            }
-        }
-    }
-
     fn disable_display(&mut self) {
         unsafe {
             self.index_port.write(VBE_DISPI_INDEX_ENABLE);
@@ -199,6 +178,7 @@ impl GraphicsWriter<u32> for BochsDevice {
             }
         }
     }
+
     fn draw_character(&self, x: usize, y: usize, character: char, color: u32) {
         let character = match font8x8::BASIC_FONTS.get(character) {
             Some(character) => character,
@@ -215,11 +195,32 @@ impl GraphicsWriter<u32> for BochsDevice {
             }
         }
     }
+
+    fn draw_rectangle(&self, rectangle: &Rectangle, color: u32) {
+        let p1 = (rectangle.x as isize, rectangle.y as isize);
+        let p2 = (rectangle.x as isize, rectangle.bottom() as isize);
+        let p3 = (rectangle.right() as isize, rectangle.bottom() as isize);
+        let p4 = (rectangle.right() as isize, rectangle.y as isize);
+        self.draw_line(p1, p2, color);
+        self.draw_line(p2, p3, color);
+        self.draw_line(p3, p4, color);
+        self.draw_line(p4, p1, color);
+    }
+
+    fn draw_filled_rectangle(&self, rectangle: &Rectangle, color: u32) {
+        for y in rectangle.y..rectangle.bottom() {
+            for x in rectangle.x..rectangle.right() {
+                self.set_pixel(x as usize, y as usize, color);
+            }
+        }
+    }
+
     fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u32) {
         for (x, y) in Bresenham::new(start, end) {
             self.set_pixel(x as usize, y as usize, color);
         }
     }
+
     fn set_pixel(&self, x: usize, y: usize, color: u32) {
         let offset = (y * self.resolution.width) + x;
         unsafe {
@@ -229,9 +230,11 @@ impl GraphicsWriter<u32> for BochsDevice {
                 .write_volatile(color);
         }
     }
+
     fn get_frame_buffer(&self) -> *mut u32 {
         self.virtual_address.as_mut_ptr()
     }
+
     fn set_mode(&mut self) {
         self.disable_display();
         self.set_width(self.resolution.width);

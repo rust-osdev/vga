@@ -1,7 +1,7 @@
 use super::{GraphicsWriter, Screen};
 use crate::{
     colors::DEFAULT_PALETTE,
-    drawing::{Bresenham, Point},
+    drawing::{Bresenham, Point, Rectangle},
     vga::{VideoMode, VGA},
 };
 use font8x8::UnicodeFonts;
@@ -47,17 +47,20 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
             self.get_frame_buffer().write_bytes(color, Self::SIZE);
         }
     }
+
     fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u8) {
         for (x, y) in Bresenham::new(start, end) {
             self.set_pixel(x as usize, y as usize, color);
         }
     }
+
     fn set_pixel(&self, x: usize, y: usize, color: u8) {
         let offset = (y * WIDTH) + x;
         unsafe {
             self.get_frame_buffer().add(offset).write_volatile(color);
         }
     }
+
     fn draw_character(&self, x: usize, y: usize, character: char, color: u8) {
         let character = match font8x8::BASIC_FONTS.get(character) {
             Some(character) => character,
@@ -74,9 +77,30 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
             }
         }
     }
+
+    fn draw_rectangle(&self, rectangle: &Rectangle, color: u8) {
+        let p1 = (rectangle.x as isize, rectangle.y as isize);
+        let p2 = (rectangle.x as isize, rectangle.bottom() as isize);
+        let p3 = (rectangle.right() as isize, rectangle.bottom() as isize);
+        let p4 = (rectangle.right() as isize, rectangle.y as isize);
+        self.draw_line(p1, p2, color);
+        self.draw_line(p2, p3, color);
+        self.draw_line(p3, p4, color);
+        self.draw_line(p4, p1, color);
+    }
+
+    fn draw_filled_rectangle(&self, rectangle: &Rectangle, color: u8) {
+        for y in rectangle.y..rectangle.bottom() {
+            for x in rectangle.x..rectangle.right() {
+                self.set_pixel(x as usize, y as usize, color);
+            }
+        }
+    }
+
     fn get_frame_buffer(&self) -> *mut u8 {
         u32::from(VGA.lock().get_frame_buffer()) as *mut u8
     }
+
     fn set_mode(&mut self) {
         let mut vga = VGA.lock();
         vga.set_video_mode(VideoMode::Mode320x200x256);

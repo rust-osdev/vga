@@ -13,20 +13,28 @@ pub type Point<T> = (T, T);
 
 #[derive(Debug, Copy, Clone)]
 pub struct Rectangle {
-    pub left: usize,
-    pub top: usize,
-    pub right: usize,
-    pub bottom: usize,
+    pub x: usize,
+    pub y: usize,
+    pub width: usize,
+    pub height: usize,
 }
 
 impl Rectangle {
-    pub fn new(left: usize, top: usize, right: usize, bottom: usize) -> Rectangle {
+    pub fn new(x: usize, y: usize, width: usize, height: usize) -> Rectangle {
         Rectangle {
-            left,
-            top,
-            right,
-            bottom,
+            x,
+            y,
+            width,
+            height,
         }
+    }
+
+    pub fn bottom(&self) -> usize {
+        self.y + self.height
+    }
+
+    pub fn right(&self) -> usize {
+        self.x + self.width
     }
 }
 

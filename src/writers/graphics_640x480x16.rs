@@ -1,7 +1,7 @@
 use super::{GraphicsWriter, Screen};
 use crate::{
     colors::{Color16, DEFAULT_PALETTE},
-    drawing::{Bresenham, Point},
+    drawing::{Bresenham, Point, Rectangle},
     registers::{PlaneMask, WriteMode},
     vga::{VideoMode, VGA},
 };
@@ -77,6 +77,25 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
         }
     }
 
+    fn draw_rectangle(&self, rectangle: &Rectangle, color: Color16) {
+        let p1 = (rectangle.x as isize, rectangle.y as isize);
+        let p2 = (rectangle.x as isize, rectangle.bottom() as isize);
+        let p3 = (rectangle.right() as isize, rectangle.bottom() as isize);
+        let p4 = (rectangle.right() as isize, rectangle.y as isize);
+        self.draw_line(p1, p2, color);
+        self.draw_line(p2, p3, color);
+        self.draw_line(p3, p4, color);
+        self.draw_line(p4, p1, color);
+    }
+
+    fn draw_filled_rectangle(&self, rectangle: &Rectangle, color: Color16) {
+        for y in rectangle.y..rectangle.bottom() {
+            for x in rectangle.x..rectangle.right() {
+                self.set_pixel(x as usize, y as usize, color);
+            }
+        }
+    }
+
     /// **Note:** This method is provided for convenience, but has terrible
     /// performance since it needs to ensure the correct `WriteMode` per pixel
     /// drawn. If you need to draw more then one pixel, consider using a method
@@ -89,6 +108,7 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
     fn get_frame_buffer(&self) -> *mut Color16 {
         u32::from(VGA.lock().get_frame_buffer()) as *mut Color16
     }
+
     fn set_mode(&mut self) {
         let mut vga = VGA.lock();
         vga.set_video_mode(VideoMode::Mode640x480x16);
