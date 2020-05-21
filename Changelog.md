@@ -1,3 +1,7 @@
+# 0.2.4
+
+- Updated `x86_64` to fix deprecated `asm!` macro.
+
 # 0.2.3
 
 - Added support for 320x240x256 mode via `Graphics320x240x256`.

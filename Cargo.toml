@@ -1,6 +1,6 @@
 [package]
 name = "vga"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Ryan Kennedy <rkennedy9064@gmail.com>"]
 edition = "2018"
 description = "Support for vga specific functions, data structures, and registers."
@@ -23,7 +23,7 @@ bitflags = "1.2.1"
 conquer-once = { version = "0.2.0", default-features = false }
 font8x8 = { version = "0.2.5", default-features = false, features = ["unicode"] }
 spinning_top = { version = "0.1.0", features = ["nightly"] }
-x86_64 = "0.9.6"
+x86_64 = "0.11.0"
 
 [dependencies.num-traits]
 version = "0.2.11"
