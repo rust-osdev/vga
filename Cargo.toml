@@ -20,11 +20,11 @@ repository = "https://github.com/rust-osdev/vga"
 
 [dependencies]
 bitflags = "1.2.1"
-conquer-once = { version = "0.2.0", default-features = false }
+conquer-once = { version = "0.2.1", default-features = false }
 font8x8 = { version = "0.2.5", default-features = false, features = ["unicode"] }
-spinning_top = { version = "0.1.0", features = ["nightly"] }
-x86_64 = "0.11.0"
+spinning_top = { version = "0.2.2", features = ["nightly"] }
+x86_64 = "0.12.2"
 
 [dependencies.num-traits]
-version = "0.2.11"
+version = "0.2.14"
 default-features = false
