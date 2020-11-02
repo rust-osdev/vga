@@ -1,3 +1,7 @@
+# 0.2.5
+
+- Updated various out of date crates.
+
 # 0.2.4
 
 - Updated `x86_64` to fix deprecated `asm!` macro.
