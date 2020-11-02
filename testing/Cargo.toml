@@ -5,13 +5,13 @@ authors = ["Ryan Kennedy <rkennedy9064@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-bootloader = { version = "0.9.3", features = ["map_physical_memory"] }
-conquer-once = { version = "0.2.0", default-features = false }
-spinning_top = { version = "0.1.0", features = ["nightly"] }
+bootloader = { version = "0.9.11", features = ["map_physical_memory"] }
+conquer-once = { version = "0.2.1", default-features = false }
+spinning_top = { version = "0.2.2", features = ["nightly"] }
 pic8259_simple = "0.2.0"
 vga = { path = "../" }
-uart_16550 = "0.2.7"
-x86_64 = "0.11.0"
+uart_16550 = "0.2.10"
+x86_64 = "0.12.2"
 
 [package.metadata.bootimage]
 test-args = [
