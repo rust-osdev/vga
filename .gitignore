@@ -1,3 +1,4 @@
 /target
 /testing/target
+/testing/binaries
 Cargo.lock

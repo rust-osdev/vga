@@ -11,7 +11,7 @@ spinning_top = { version = "0.2.2", features = ["nightly"] }
 pic8259_simple = "0.2.0"
 vga = { path = "../" }
 uart_16550 = "0.2.10"
-x86_64 = "0.12.2"
+x86_64 = "0.13.2"
 
 [package.metadata.bootimage]
 test-args = [
