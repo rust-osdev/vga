@@ -1,3 +1,7 @@
+# 0.2.6
+
+- Updatex `x86_64` to build with lastest rust nightly.
+
 # 0.2.5
 
 - Updated various out of date crates.
