@@ -6,12 +6,12 @@ edition = "2018"
 
 [dependencies]
 bootloader = { version = "0.9.11", features = ["map_physical_memory"] }
-conquer-once = { version = "0.2.1", default-features = false }
-spinning_top = { version = "0.2.2", features = ["nightly"] }
+conquer-once = { version = "0.3.2", default-features = false }
+spinning_top = { version = "0.2.4", features = ["nightly"] }
 pic8259_simple = "0.2.0"
 vga = { path = "../" }
 uart_16550 = "0.2.10"
-x86_64 = "0.13.2"
+x86_64 = "0.14.2"
 
 [package.metadata.bootimage]
 test-args = [
