@@ -10,7 +10,7 @@ conquer-once = { version = "0.3.2", default-features = false }
 spinning_top = { version = "0.2.4", features = ["nightly"] }
 pic8259_simple = "0.2.0"
 vga = { path = "../" }
-uart_16550 = "0.2.10"
+uart_16550 = "0.2.14"
 x86_64 = "0.14.2"
 
 [package.metadata.bootimage]
