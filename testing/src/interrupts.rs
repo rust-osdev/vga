@@ -2,7 +2,7 @@ use crate::gdt;
 use crate::{hlt_loop, serial_print, serial_println};
 use conquer_once::spin::Lazy;
 use core::convert::Into;
-use pic8259_simple::ChainedPics;
+use pic8259::ChainedPics;
 use spinning_top::Spinlock;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
 
