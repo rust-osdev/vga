@@ -8,7 +8,7 @@ edition = "2018"
 bootloader = { version = "0.9.11", features = ["map_physical_memory"] }
 conquer-once = { version = "0.3.2", default-features = false }
 spinning_top = { version = "0.2.4", features = ["nightly"] }
-pic8259_simple = "0.2.0"
+pic8259 = "0.10.1"
 vga = { path = "../" }
 uart_16550 = "0.2.14"
 x86_64 = "0.14.2"
