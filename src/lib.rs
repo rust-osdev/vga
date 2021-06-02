@@ -6,6 +6,7 @@
 
 #![no_std]
 #![warn(missing_docs)]
+#![feature(const_fn_trait_bound)]
 
 pub mod colors;
 pub mod configurations;
