@@ -25,27 +25,31 @@ pub static VGA: Lazy<Spinlock<Vga>> = Lazy::new(|| Spinlock::new(Vga::new()));
 #[repr(usize)]
 pub enum FrameBuffer {
     /// The starting address for graphics modes.
-    GraphicsMode = 0xa0000,
+    GraphicsMode(usize),
     /// The starting address for color text modes.
-    CgaMode = 0xb8000,
+    CgaMode(usize),
     /// The starting address for monochrome text modes.
-    MdaMode = 0xb0000,
+    MdaMode(usize),
 }
 
-impl From<u8> for FrameBuffer {
-    fn from(value: u8) -> FrameBuffer {
-        match value {
-            0x1 => FrameBuffer::GraphicsMode,
-            0x2 => FrameBuffer::MdaMode,
-            0x3 => FrameBuffer::CgaMode,
-            _ => panic!("{:X} is not a valid FrameBuffer value", value),
+impl FrameBuffer {
+    fn new(memory_map_mode: u8, video_memory_start: usize) -> FrameBuffer {
+        match memory_map_mode {
+            0x1 => FrameBuffer::GraphicsMode(video_memory_start),
+            0x2 => FrameBuffer::MdaMode(video_memory_start + 0x10000),
+            0x3 => FrameBuffer::CgaMode(video_memory_start + 0x18000),
+            _ => panic!("{:X} is not a valid FrameBuffer map mode", memory_map_mode),
         }
     }
 }
 
 impl From<FrameBuffer> for usize {
     fn from(value: FrameBuffer) -> usize {
-        value as usize
+        match value {
+            FrameBuffer::GraphicsMode(addr) => addr,
+            FrameBuffer::CgaMode(addr) => addr,
+            FrameBuffer::MdaMode(addr) => addr,
+        }
     }
 }
 
@@ -82,6 +86,8 @@ pub struct Vga {
     /// Represents the color palette registers on vga hardware.
     pub color_palette_registers: ColorPaletteRegisters,
     most_recent_video_mode: Option<VideoMode>,
+    /// Memory start. 0xa0000 for physical memory mapping
+    video_memory_start: usize,
 }
 
 impl Vga {
@@ -94,7 +100,23 @@ impl Vga {
             crtc_controller_registers: CrtcControllerRegisters::new(),
             color_palette_registers: ColorPaletteRegisters::new(),
             most_recent_video_mode: None,
+            video_memory_start: 0xa0000,
         }
+    }
+
+    /// Set the start of video memory
+    ///
+    /// The default is 0xA0000 for identity map to physical memory
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use vga;
+    ///
+    /// vga::vga::VGA.lock().set_memory_start(0xa0000);
+    /// ```
+    pub fn set_memory_start(&mut self, video_memory_start: usize) {
+        self.video_memory_start = video_memory_start;
     }
 
     /// Sets the vga graphics card to the given `VideoMode`.
@@ -116,7 +138,7 @@ impl Vga {
             .graphics_controller_registers
             .read(GraphicsControllerIndex::Miscellaneous);
         let memory_map_mode = (miscellaneous_graphics >> 0x2) & 0x3;
-        FrameBuffer::from(memory_map_mode)
+        FrameBuffer::new(memory_map_mode, self.video_memory_start)
     }
 
     /// Returns the most recent video mode, or `None` if no
