@@ -22,7 +22,7 @@ pub static VGA: Lazy<Spinlock<Vga>> = Lazy::new(|| Spinlock::new(Vga::new()));
 /// Represents the starting address of the frame buffer for
 /// various video modes.
 #[derive(Debug, Copy, Clone)]
-#[repr(u32)]
+#[repr(usize)]
 pub enum FrameBuffer {
     /// The starting address for graphics modes.
     GraphicsMode = 0xa0000,
@@ -43,9 +43,9 @@ impl From<u8> for FrameBuffer {
     }
 }
 
-impl From<FrameBuffer> for u32 {
-    fn from(value: FrameBuffer) -> u32 {
-        value as u32
+impl From<FrameBuffer> for usize {
+    fn from(value: FrameBuffer) -> usize {
+        value as usize
     }
 }
 
@@ -156,7 +156,7 @@ impl Vga {
         // Write font to plane
         self.sequencer_registers.set_plane_mask(PlaneMask::PLANE2);
 
-        let frame_buffer = u32::from(self.get_frame_buffer()) as *mut u8;
+        let frame_buffer = usize::from(self.get_frame_buffer()) as *mut u8;
 
         for character in 0..vga_font.characters {
             for row in 0..vga_font.character_height {
