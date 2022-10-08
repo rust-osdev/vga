@@ -66,7 +66,7 @@ impl TextModeColor {
 
     /// Sets the foreground color given the specified `foreground`.
     pub fn set_foreground(&mut self, foreground: Color16) {
-        self.0 = foreground as u8;
+        self.0 = (foreground as u8) | (self.0 & 0xF0);
     }
 }
 
@@ -131,6 +131,14 @@ mod test {
         let mut color = TextModeColor::new(Color16::Yellow, Color16::Black);
         color.set_foreground(Color16::Red);
         assert_eq!(color.0 & 0x0F, Color16::Red as u8);
+    }
+
+    #[test]
+    fn test_set_foreground_keep_background() {
+        let mut color = TextModeColor::new(Color16::Yellow, Color16::White);
+        color.set_foreground(Color16::Red);
+        assert_eq!(color.0 & 0x0F, Color16::Red as u8);
+        assert_eq!(color.0 >> 4, Color16::White as u8); // Background unaffected
     }
 
     #[test]
