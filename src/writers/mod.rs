@@ -73,7 +73,7 @@ pub trait TextWriter: Screen {
     fn get_frame_buffer(&self) -> (SpinlockGuard<Vga>, *mut ScreenCharacter) {
         let mut vga = VGA.lock();
         let frame_buffer = vga.get_frame_buffer();
-        (vga, u32::from(frame_buffer) as *mut ScreenCharacter)
+        (vga, usize::from(frame_buffer) as *mut ScreenCharacter)
     }
 
     /// Clears the screen by setting all cells to `b' '` with
@@ -201,6 +201,6 @@ pub trait GraphicsWriter<Color> {
     fn set_mode(&self);
     /// Returns the frame buffer for this vga mode.
     fn get_frame_buffer(&self) -> *mut u8 {
-        u32::from(VGA.lock().get_frame_buffer()) as *mut u8
+        usize::from(VGA.lock().get_frame_buffer()) as *mut u8
     }
 }
