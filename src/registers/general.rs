@@ -5,6 +5,7 @@ use super::{
 use x86_64::instructions::port::{PortReadOnly, PortWriteOnly};
 
 /// Represents the general registers on vga hardware.
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct GeneralRegisters {
     st00_read: PortReadOnly<u8>,
