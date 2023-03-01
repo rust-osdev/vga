@@ -1,6 +1,15 @@
+# 0.2.8
+
+- Added the ability to set the graphics memory start with `vga::vga::VGA.lock().set_memory_start(0xa0000);`.
+- `TextModeColor::set_foreground` now correctly saves the background color instead of resetting to black.
+
+# 0.2.7
+
+- Updated various out of date crates.
+
 # 0.2.6
 
-- Updatex `x86_64` to build with lastest rust nightly.
+- Updated `x86_64` to build with lastest rust nightly.
 
 # 0.2.5
 
