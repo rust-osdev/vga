@@ -13,6 +13,7 @@ use super::{
         GraphicsControllerRegisters, PlaneMask, SequencerIndex, SequencerRegisters,
     },
 };
+use crate::configurations::MODE_1280X800X256_CONFIGURATION;
 use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 
@@ -68,6 +69,8 @@ pub enum VideoMode {
     Mode320x240x256,
     /// Represents graphics mode 640x480x16.
     Mode640x480x16,
+    /// Represents graphics mode 1280x800x256.
+    Mode1280x800x256,
 }
 
 /// Represents a vga graphics card with it's common registers,
@@ -128,6 +131,7 @@ impl Vga {
             VideoMode::Mode320x200x256 => self.set_video_mode_320x200x256(),
             VideoMode::Mode320x240x256 => self.set_video_mode_320x240x256(),
             VideoMode::Mode640x480x16 => self.set_video_mode_640x480x16(),
+            VideoMode::Mode1280x800x256 => self.set_video_mode_1280x800x256(),
         }
     }
 
@@ -311,6 +315,12 @@ impl Vga {
     fn set_video_mode_640x480x16(&mut self) {
         self.set_registers(&MODE_640X480X16_CONFIGURATION);
         self.most_recent_video_mode = Some(VideoMode::Mode640x480x16);
+    }
+
+    /// Sets the video card to Mode 1280x800x256.
+    fn set_video_mode_1280x800x256(&mut self) {
+        self.set_registers(&MODE_1280X800X256_CONFIGURATION);
+        self.most_recent_video_mode = Some(VideoMode::Mode1280x800x256);
     }
 
     /// Unlocks the CRTC registers by setting bit 7 to 0 `(value & 0x7F)`.
