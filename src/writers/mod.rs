@@ -12,8 +12,10 @@ use super::{
     registers::CrtcControllerIndex,
     vga::{Vga, VGA},
 };
+use core::slice::from_raw_parts_mut;
 use spinning_top::SpinlockGuard;
 
+use crate::drawing::Bresenham;
 pub use graphics_320x200x256::Graphics320x200x256;
 pub use graphics_320x240x256::Graphics320x240x256;
 pub use graphics_640x480x16::Graphics640x480x16;
@@ -188,19 +190,46 @@ pub trait TextWriter: Screen {
 }
 
 /// A helper trait used to interact with various vga graphics modes.
-pub trait GraphicsWriter<Color> {
+pub trait GraphicsWriter<Color: Copy> {
     /// Clears the screen by setting all pixels to the specified `color`.
     fn clear_screen(&self, color: Color);
-    /// Draws a line from `start` to `end` with the specified `color`.
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color);
-    /// Draws a character at the given `(x, y)` coordinant to the specified `color`.
+
+    /// Draws a character at the given `(x, y)` coordinate to the specified `color`.
     fn draw_character(&self, x: usize, y: usize, character: char, color: Color);
+
     /// Sets the given pixel at `(x, y)` to the given `color`.
     fn set_pixel(&self, x: usize, y: usize, color: Color);
+
     /// Sets the graphics device to a `VideoMode`.
     fn set_mode(&self);
+
     /// Returns the frame buffer for this vga mode.
     fn get_frame_buffer(&self) -> *mut u8 {
         usize::from(VGA.lock().get_frame_buffer()) as *mut u8
+    }
+}
+
+/// Implementations of this trait can draw primitive shapes.
+pub trait PrimitiveDrawing<C>: GraphicsWriter<C> + Screen
+where
+    C: Copy,
+{
+    /// Draws a line from `start` to `end` with the specified `color`.
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: C) {
+        for (x, y) in Bresenham::new(start, end) {
+            self.set_pixel(x as usize, y as usize, color);
+        }
+    }
+
+    /// Draws a rectangle from `p1` to `p2` with the specified `color`.
+    fn draw_rect(&self, p1: Point<usize>, p2: Point<usize>, color: C) {
+        let frame_buffer = self.get_frame_buffer() as *mut C;
+        let line_width = p2.0.abs_diff(p1.0);
+
+        (p1.1..p2.1)
+            .map(|y| Self::WIDTH * y + p1.0)
+            .map(|offset| unsafe { frame_buffer.add(offset) })
+            .map(|ptr| unsafe { from_raw_parts_mut(ptr, line_width) })
+            .for_each(|line| line.fill(color));
     }
 }

@@ -1,4 +1,5 @@
 use super::{GraphicsWriter, Screen};
+use crate::writers::PrimitiveDrawing;
 use crate::{
     colors::{Color16, DEFAULT_PALETTE},
     drawing::{Bresenham, Point},
@@ -52,13 +53,6 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
         }
     }
 
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16) {
-        self.set_write_mode_0(color);
-        for (x, y) in Bresenham::new(start, end) {
-            self._set_pixel(x as usize, y as usize, color);
-        }
-    }
-
     fn draw_character(&self, x: usize, y: usize, character: char, color: Color16) {
         self.set_write_mode_2();
         let character = match font8x8::BASIC_FONTS.get(character) {
@@ -93,6 +87,15 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
         vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
+    }
+}
+
+impl PrimitiveDrawing<Color16> for Graphics640x480x16 {
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16) {
+        self.set_write_mode_0(color);
+        for (x, y) in Bresenham::new(start, end) {
+            self._set_pixel(x as usize, y as usize, color);
+        }
     }
 }
 
