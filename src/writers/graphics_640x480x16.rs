@@ -21,8 +21,8 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 ///
 /// ```no_run
 /// use vga::colors::Color16;
-/// use vga::writers::{Graphics640x480x16, GraphicsWriter};
-
+/// use vga::writers::{Graphics640x480x16, GraphicsWriter, PrimitiveDrawing};
+///
 /// let mode = Graphics640x480x16::new();
 /// mode.set_mode();
 /// mode.clear_screen(Color16::Black);
@@ -34,6 +34,7 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 /// for (offset, character) in "Hello World!".chars().enumerate() {
 ///     mode.draw_character(270 + offset * 8, 72, character, Color16::White)
 /// }
+/// mode.draw_rect((90, 70), (530, 410), Color16::Yellow);
 /// ```
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Graphics640x480x16;

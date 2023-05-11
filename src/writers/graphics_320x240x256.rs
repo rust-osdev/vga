@@ -1,4 +1,5 @@
 use super::{GraphicsWriter, Screen};
+use crate::writers::PrimitiveDrawing;
 use crate::{
     colors::DEFAULT_PALETTE,
     registers::PlaneMask,
@@ -18,7 +19,7 @@ const SIZE: usize = (WIDTH * HEIGHT) / 4;
 ///
 /// ```no_run
 /// use vga::colors::Color16;
-/// use vga::writers::{Graphics320x240x256, GraphicsWriter};
+/// use vga::writers::{Graphics320x240x256, GraphicsWriter, PrimitiveDrawing};
 ///
 /// let mode = Graphics320x240x256::new();
 /// mode.set_mode();
@@ -31,6 +32,7 @@ const SIZE: usize = (WIDTH * HEIGHT) / 4;
 /// for (offset, character) in "Hello World!".chars().enumerate() {
 ///     mode.draw_character(118 + offset * 8, 27, character, 255);
 /// }
+/// mode.draw_rect((300, 180), (320, 240), 255);
 /// ```
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Graphics320x240x256;
@@ -88,6 +90,8 @@ impl GraphicsWriter<u8> for Graphics320x240x256 {
         vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
     }
 }
+
+impl PrimitiveDrawing<u8> for Graphics320x240x256 {}
 
 impl Graphics320x240x256 {
     /// Creates a new `Graphics320x240x256`.
