@@ -78,6 +78,17 @@ fn set_mode_640x480x16() {
 }
 
 #[test_case]
+fn set_mode_1280x800x16() {
+    serial_print!("mode 1280x800x16... ");
+
+    let mut vga = VGA.lock();
+    vga.set_video_mode(VideoMode::Mode1280x800x16);
+    check_registers(&mut vga, &MODE_1280x800X16_CONFIGURATION);
+
+    serial_println!("[ok]");
+}
+
+#[test_case]
 fn load_palette() {
     serial_print!("load palette... ");
 
