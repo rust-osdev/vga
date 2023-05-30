@@ -8,8 +8,8 @@ use core::panic::PanicInfo;
 use testing::{gdt, interrupts, serial_print, serial_println};
 use vga::colors::{DEFAULT_PALETTE, PALETTE_SIZE};
 use vga::configurations::{
-    VgaConfiguration, MODE_40X25_CONFIGURATION, MODE_40X50_CONFIGURATION,
-    MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
+    VgaConfiguration, MODE_1280X800X256_CONFIGURATION, MODE_40X25_CONFIGURATION,
+    MODE_40X50_CONFIGURATION, MODE_640X480X16_CONFIGURATION, MODE_80X25_CONFIGURATION,
 };
 use vga::vga::{Vga, VideoMode, VGA};
 
@@ -73,6 +73,17 @@ fn set_mode_640x480x16() {
     let mut vga = VGA.lock();
     vga.set_video_mode(VideoMode::Mode640x480x16);
     check_registers(&mut vga, &MODE_640X480X16_CONFIGURATION);
+
+    serial_println!("[ok]");
+}
+
+#[test_case]
+fn set_mode_1280x800x256() {
+    serial_print!("mode 1280x800x256... ");
+
+    let mut vga = VGA.lock();
+    vga.set_video_mode(VideoMode::Mode1280x800x256);
+    check_registers(&mut vga, &MODE_1280X800X256_CONFIGURATION);
 
     serial_println!("[ok]");
 }
