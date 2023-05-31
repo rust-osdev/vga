@@ -1,4 +1,5 @@
 //! Writers for common vga modes.
+mod graphics_1280x800x256;
 mod graphics_320x200x256;
 mod graphics_320x240x256;
 mod graphics_640x480x16;
@@ -16,6 +17,7 @@ use core::slice::from_raw_parts_mut;
 use spinning_top::SpinlockGuard;
 
 use crate::drawing::Bresenham;
+pub use graphics_1280x800x256::Graphics1280x800x256;
 pub use graphics_320x200x256::Graphics320x200x256;
 pub use graphics_320x240x256::Graphics320x240x256;
 pub use graphics_640x480x16::Graphics640x480x16;

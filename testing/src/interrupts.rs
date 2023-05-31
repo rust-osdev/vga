@@ -68,10 +68,7 @@ extern "x86-interrupt" fn page_fault_handler(
     hlt_loop();
 }
 
-extern "x86-interrupt" fn segment_not_present(
-    _stack_frame: InterruptStackFrame,
-    _error_code: u64,
-) {
+extern "x86-interrupt" fn segment_not_present(_stack_frame: InterruptStackFrame, _error_code: u64) {
     // For some reason this sometimes gets thrown when running tests in qemu,
     // so leave empty so the tests finish for now.
 }
