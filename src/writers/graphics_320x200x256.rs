@@ -1,7 +1,7 @@
 use super::{GraphicsWriter, Screen};
+use crate::writers::PrimitiveDrawing;
 use crate::{
     colors::DEFAULT_PALETTE,
-    drawing::{Bresenham, Point},
     vga::{VideoMode, VGA},
 };
 use font8x8::UnicodeFonts;
@@ -18,7 +18,7 @@ const SIZE: usize = WIDTH * HEIGHT;
 ///
 /// ```no_run
 /// use vga::colors::Color16;
-/// use vga::writers::{Graphics320x200x256, GraphicsWriter};
+/// use vga::writers::{Graphics320x200x256, GraphicsWriter, PrimitiveDrawing};
 ///
 /// let mode = Graphics320x200x256::new();
 /// mode.set_mode();
@@ -31,6 +31,7 @@ const SIZE: usize = WIDTH * HEIGHT;
 /// for (offset, character) in "Hello World!".chars().enumerate() {
 ///     mode.draw_character(118 + offset * 8, 27, character, 255);
 /// }
+/// mode.draw_rect((300, 180), (320, 200), 255);
 /// ```
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Graphics320x200x256;
@@ -45,11 +46,6 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
     fn clear_screen(&self, color: u8) {
         unsafe {
             self.get_frame_buffer().write_bytes(color, Self::SIZE);
-        }
-    }
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: u8) {
-        for (x, y) in Bresenham::new(start, end) {
-            self.set_pixel(x as usize, y as usize, color);
         }
     }
     fn set_pixel(&self, x: usize, y: usize, color: u8) {
@@ -83,6 +79,8 @@ impl GraphicsWriter<u8> for Graphics320x200x256 {
         vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
     }
 }
+
+impl PrimitiveDrawing<u8> for Graphics320x200x256 {}
 
 impl Graphics320x200x256 {
     /// Creates a new `Graphics320x200x256`.

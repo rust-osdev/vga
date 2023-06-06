@@ -1,4 +1,5 @@
 use super::{GraphicsWriter, Screen};
+use crate::writers::PrimitiveDrawing;
 use crate::{
     colors::{Color16, DEFAULT_PALETTE},
     drawing::{Bresenham, Point},
@@ -20,8 +21,8 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 ///
 /// ```no_run
 /// use vga::colors::Color16;
-/// use vga::writers::{Graphics640x480x16, GraphicsWriter};
-
+/// use vga::writers::{Graphics640x480x16, GraphicsWriter, PrimitiveDrawing};
+///
 /// let mode = Graphics640x480x16::new();
 /// mode.set_mode();
 /// mode.clear_screen(Color16::Black);
@@ -33,6 +34,7 @@ const WIDTH_IN_BYTES: usize = WIDTH / 8;
 /// for (offset, character) in "Hello World!".chars().enumerate() {
 ///     mode.draw_character(270 + offset * 8, 72, character, Color16::White)
 /// }
+/// mode.draw_rect((90, 70), (530, 410), Color16::Yellow);
 /// ```
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Graphics640x480x16;
@@ -49,13 +51,6 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
         unsafe {
             self.get_frame_buffer()
                 .write_bytes(u8::from(color), Self::SIZE);
-        }
-    }
-
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16) {
-        self.set_write_mode_0(color);
-        for (x, y) in Bresenham::new(start, end) {
-            self._set_pixel(x as usize, y as usize, color);
         }
     }
 
@@ -93,6 +88,15 @@ impl GraphicsWriter<Color16> for Graphics640x480x16 {
         // Some bios mess up the palette when switching modes,
         // so explicitly set it.
         vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
+    }
+}
+
+impl PrimitiveDrawing<Color16> for Graphics640x480x16 {
+    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: Color16) {
+        self.set_write_mode_0(color);
+        for (x, y) in Bresenham::new(start, end) {
+            self._set_pixel(x as usize, y as usize, color);
+        }
     }
 }
 

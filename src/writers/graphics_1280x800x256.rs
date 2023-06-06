@@ -1,10 +1,13 @@
-use super::{GraphicsWriter, Screen};
+use core::slice::from_raw_parts_mut;
+
+use font8x8::UnicodeFonts;
+
 use crate::colors::DEFAULT_PALETTE;
-use crate::drawing::{Bresenham, Point};
 use crate::registers::PlaneMask;
 use crate::vga::VGA;
-use core::slice::from_raw_parts_mut;
-use font8x8::UnicodeFonts;
+use crate::writers::PrimitiveDrawing;
+
+use super::{GraphicsWriter, Screen};
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 800;
@@ -21,7 +24,7 @@ type ColorT = u32;
 /// Basic usage:
 ///
 /// ```no_run
-/// use vga::writers::{Graphics1280x800x256, GraphicsWriter};
+/// use vga::writers::{Graphics1280x800x256, GraphicsWriter, PrimitiveDrawing};
 ///
 /// let mode = Graphics1280x800x256::new();
 /// mode.set_mode();
@@ -52,12 +55,6 @@ impl GraphicsWriter<ColorT> for Graphics1280x800x256 {
             .set_plane_mask(PlaneMask::ALL_PLANES);
         unsafe {
             from_raw_parts_mut(frame_buffer, PIXEL_COUNT).fill(color);
-        }
-    }
-
-    fn draw_line(&self, start: Point<isize>, end: Point<isize>, color: ColorT) {
-        for (x, y) in Bresenham::new(start, end) {
-            self.set_pixel(x as usize, y as usize, color);
         }
     }
 
@@ -94,6 +91,8 @@ impl GraphicsWriter<ColorT> for Graphics1280x800x256 {
         vga.color_palette_registers.load_palette(&DEFAULT_PALETTE);
     }
 }
+
+impl PrimitiveDrawing<ColorT> for Graphics1280x800x256 {}
 
 impl Graphics1280x800x256 {
     /// Creates a new `Graphics1280x800x256`.
