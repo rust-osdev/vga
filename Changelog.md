@@ -1,3 +1,8 @@
+# 0.2.9
+
+- Added `Graphics1280x800x256`.
+- Added `PrimitiveDrawing` with the ability to `draw_line` and `draw_rect`.
+
 # 0.2.8
 
 - Added the ability to set the graphics memory start with `vga::vga::VGA.lock().set_memory_start(0xa0000);`.
